@@ -1,0 +1,64 @@
+<button class="back-button">
+  <i class="fa fa-chevron-left"></i>
+  Back
+</button>
+
+<div class="deck-view-header">
+  <div class="deck-view-data-group">
+    <span class="deck-view-data-label">Name</span>
+    <span class="deck-view-data-value editable" data-field="name"
+      >Deck Name</span
+    >
+  </div>
+  <div class="deck-view-data-group">
+    <span class="deck-view-data-label">Author</span>
+    <span class="deck-view-data-value">You of course</span>
+  </div>
+  <div class="deck-view-data-group">
+    <span class="deck-view-data-label">Description</span>
+    <span class="deck-view-data-value editable" data-field="description"
+      >Deck Description</span
+    >
+  </div>
+</div>
+
+<div class="deck-view-item-list">
+  <div class="deck-view-list-header">
+    <span class="deck-view-header-field" data-field="type">Type</span>
+    <span class="deck-view-header-field" data-field="japanese">Japanese</span>
+    <span class="deck-view-header-field" data-field="english">English</span>
+    <span class="deck-view-header-field" data-field="srsLevel">SRS Level</span>
+    <span class="deck-view-header-field" data-field="edit"></span>
+  </div>
+  <div class="deck-view-items">
+    <template class="deck-view-item-template">
+      <div class="deck-view-item">
+        <span class="deck-view-item-field" data-field="type"></span>
+        <span class="deck-view-item-field" data-field="japanese"></span>
+        <span class="deck-view-item-field" data-field="english"></span>
+        <span class="deck-view-item-field" data-field="srsLevel"></span>
+        <span class="deck-view-item-field" data-field="edit">
+          <i class="fa fa-pen-to-square deck-view-edit-icon"></i>
+        </span>
+      </div>
+    </template>
+    <div class="deck-view-item-filler">
+      <span class="deck-view-item-field" data-field="type"></span>
+      <span class="deck-view-item-field" data-field="japanese"></span>
+      <span class="deck-view-item-field" data-field="english"></span>
+      <span class="deck-view-item-field" data-field="srsLevel"></span>
+      <span class="deck-view-item-field" data-field="edit"></span>
+    </div>
+  </div>
+</div>
+
+<div class="deck-view-actions">
+  <button class="deck-view-action-button deck-view-add-item">
+    <i class="fa fa-plus"></i>
+    Add Item
+  </button>
+  <button class="deck-view-action-button deck-view-delete-deck">
+    <i class="fa fa-trash"></i>
+    Delete Deck
+  </button>
+</div>

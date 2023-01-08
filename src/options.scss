@@ -1,0 +1,102 @@
+.options-tabs {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  padding: 0.5em 1em 0 1em;
+  color: var(--text-color);
+  width: 100%;
+  box-sizing: border-box;
+  border-bottom: 3px solid var(--primary-border-color);
+  background: var(--container-darker-color);
+
+  .options-tab {
+    border: 3px solid var(--primary-border-color);
+    border-radius: 0.5em 0.5em 0 0;
+    padding: 0.5em 1em;
+    background: var(--container-color);
+    box-shadow: 0 0 0.25em var(--shadow-color);
+    margin-bottom: -4px;
+    border-bottom-width: 4px;
+
+    text-transform: uppercase;
+    user-select: none;
+    cursor: pointer;
+  }
+
+  .options-tab.tab-active {
+    border-bottom: 5px solid var(--container-color);
+  }
+}
+
+.options-tab-container {
+  display: flex;
+  flex: 1 1 auto;
+  width: 100%;
+  background: var(--container-color);
+  padding: 1em;
+  box-sizing: border-box;
+}
+
+.options-tab-content {
+  display: none;
+  flex-direction: column;
+  gap: 1em;
+  flex: 1 1 auto;
+
+  &.tab-active {
+    display: flex;
+  }
+}
+
+.options-input-group {
+  display: flex;
+
+  .options-input-label {
+    color: var(--text-color);
+    margin-bottom: 0.5em;
+    flex: 0 0 60%;
+    cursor: pointer;
+  }
+
+  .options-input {
+    flex: 1 1 auto;
+    cursor: pointer;
+  }
+
+  select.options-input {
+    background: var(--container-darker-color);
+    color: var(--text-color);
+    border: 1px solid var(--secondary-border-color);
+    padding: 0.5em;
+    border-radius: 0.5em;
+    accent-color: var(--button-hover-color);
+  }
+
+  .options-input-help {
+    cursor: help;
+    padding: 0.5em;
+    color: var(--secondary-title-color);
+  }
+}
+
+.options-coming-soon {
+  width: 100%;
+  display: block;
+  text-align: center;
+  font-size: 2em;
+  flex: 1 1 auto;
+  color: var(--text-color);
+  padding-top: 3em;
+}
+
+.options-help-hover {
+  display: none;
+  position: absolute;
+  background: var(--help-background-color);
+  color: var(--text-color);
+  max-width: 50ch;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  line-height: 1.7em;
+  text-align: justify;
+}

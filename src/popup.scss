@@ -1,0 +1,100 @@
+@import "./colors.scss";
+
+html {
+  background: var(--container-color);
+  border-radius: 5px;
+
+  @include color-theme;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  width: 20rem;
+  margin: 2rem 0;
+}
+
+h1 {
+  margin: 1rem 0;
+  padding: 0;
+  text-align: center;
+  color: var(--text-color);
+  cursor: default;
+}
+
+.action-container {
+  width: 90%;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--secondary-border-color);
+  border-radius: 5px;
+  padding: 0.5rem;
+  box-shadow: 1px 1px 3px var(--shadow-color);
+  position: relative;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+
+  .action-container-title {
+    color: var(--secondary-title-color);
+    position: absolute;
+    text-transform: uppercase;
+    top: -0.75em;
+    background: var(--container-color);
+    padding: 0 0.5em;
+    font-size: 1rem;
+    cursor: default;
+  }
+}
+
+button {
+  width: 100%;
+  background: var(--button-color);
+  color: var(--text-color);
+  border: none;
+  padding: 0.5rem;
+  border-radius: 5px;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  box-shadow: 1px 1px 3px var(--shadow-color);
+  cursor: pointer;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+
+  &:hover {
+    background: var(--button-hover-color);
+  }
+}
+
+.header {
+  position: relative;
+}
+
+.dark-mode-switcher {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--dark-mode-picker-color);
+
+  &:hover {
+    color: var(--dark-mode-picker-hover-color);
+  }
+
+  &::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 1.25rem;
+    content: "\f185";
+  }
+
+  .dark &::before {
+    content: "\f186";
+  }
+}

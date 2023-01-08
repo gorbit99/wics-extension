@@ -1,0 +1,87 @@
+.decks-list {
+  width: 100%;
+  margin-top: 0.5em;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: calc((100% - 30% * 3) / 2);
+}
+
+.deck {
+  flex: 0 0 30%;
+  cursor: pointer;
+  padding: 0.5em 0;
+
+  &:hover {
+    background: var(--deck-hover-color);
+  }
+
+  .deck-icon {
+    margin: auto;
+    width: 80%;
+    aspect-ratio: 0.8;
+    background: var(--container-color);
+    border: 1px solid var(--primary-border-color);
+    border-radius: 0.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.3);
+  }
+}
+
+.deck-title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .deck-name {
+    color: var(--text-color);
+  }
+
+  .deck-count {
+    font-size: 0.8em;
+    color: var(--secondary-title-color);
+  }
+
+  .deck-name-input {
+    text-align: center;
+    margin-bottom: 0;
+    width: 80%;
+  }
+
+  .deck-name-error {
+    font-size: 0.8em;
+    color: var(--error-color);
+    margin-top: 0.5em;
+  }
+}
+
+.deck-progress-outer {
+  width: 80%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background-image: conic-gradient(var(--wanikani-lesson-color) 0deg 360deg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid black;
+
+  .deck-progress-inner {
+    width: 60%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--container-color);
+    border: 2px solid black;
+  }
+}
+
+.deck-new-icon::before {
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 5em;
+  content: "\f067";
+  color: #666;
+}

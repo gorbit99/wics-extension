@@ -1,0 +1,48 @@
+.item-view-data,
+.item-view-specific-data {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-gutter: stable;
+  overflow: auto;
+  overscroll-behavior: contain;
+  width: 100%;
+  padding: 0.5em;
+  box-sizing: border-box;
+}
+
+.item-view-actions {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 1em;
+  box-sizing: border-box;
+}
+
+.item-view-action-button {
+  background: var(--button-color);
+  color: var(--text-color);
+  border: 3px solid var(--primary-border-color);
+  border-radius: 0.5em;
+  padding: 0.5em;
+  cursor: pointer;
+  font-size: 1em;
+
+  &:hover {
+    background: var(--button-hover-color);
+  }
+
+  &.item-view-delete-button {
+    background: var(--container-color);
+    color: var(--text-color);
+    border-color: var(--delete-color);
+    border-width: 1px;
+
+    &:hover {
+      background: var(--delete-color);
+    }
+  }
+}

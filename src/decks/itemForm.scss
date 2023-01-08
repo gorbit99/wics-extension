@@ -1,0 +1,92 @@
+.item-option-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0.25em 1em;
+  box-sizing: border-box;
+
+  .item-option-label {
+    flex: 0 0 30%;
+    color: var(--text-color);
+    user-select: none;
+    display: block;
+  }
+
+  .item-option-value-container {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+  }
+}
+
+.item-button-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1 1 auto;
+  box-shadow: 0 0 0.25em var(--shadow-color);
+
+  .item-button {
+    flex: 0 0 calc(100% / 3);
+  }
+
+  .item-button:first-of-type {
+    border-radius: 0.5em 0 0 0.5em;
+  }
+
+  .item-button:last-of-type {
+    border-radius: 0 0.5em 0.5em 0;
+  }
+
+  .item-button.active {
+    background: var(--button-hover-color);
+  }
+}
+
+.item-button {
+  background: var(--button-color);
+  color: var(--text-color);
+  border: 1px solid var(--primary-border-color);
+  padding: 0.5em;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background: var(--button-hover-color);
+  }
+}
+
+.item-option-editable-value {
+  color: var(--text-color);
+
+  &::after {
+    content: "\f044";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 0.8em;
+    margin-left: 0.5em;
+  }
+}
+
+.item-option-value {
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  margin: 0.5em;
+
+  &.editable {
+    cursor: pointer;
+  }
+
+  &.editable::after {
+    content: "\f044";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 0.8em;
+    margin-left: 0.5em;
+  }
+}

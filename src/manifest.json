@@ -1,0 +1,55 @@
+{
+  "description": "An extension to add and manage custom items to WaniKani",
+  "{{chrome}}.manifest_version": 3,
+  "{{firefox}}.manifest_version": 2,
+  "icons": {
+    "16": "icon/16.png",
+    "32": "icon/32.png",
+    "48": "icon/48.png",
+    "96": "icon/96.png",
+    "128": "icon/128.png"
+  },
+  "{{chrome}}.action": {
+    "default_popup": "src/popup.html"
+  },
+  "{{firefox}}.browser_action": {
+    "default_popup": "src/popup.html"
+  },
+  "background": {
+    "{{chrome}}.service_worker": "src/background.ts",
+    "{{firefox}}.scripts": ["src/background.ts"]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.wanikani.com/review/session",
+        "https://*.wanikani.com/lesson/session"
+      ],
+      "js": ["src/review.ts"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://*.wanikani.com/*"],
+      "exclude_matches": [
+        "https://*.wanikani.com/review/session",
+        "https://*.wanikani.com/lesson/session"
+      ],
+      "js": ["src/dashboard.ts"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/monkeyPatching/jquery.js",
+        "src/monkeyPatching/fetch.js"
+      ],
+      "matches": ["https://*.wanikani.com/*"]
+    }
+  ],
+  "permissions": ["storage", "tabs", "scripting"],
+  "externally_connectable": {
+    "matches": ["https://*.wanikani.com/*"]
+  },
+  "host_permissions": ["https://*/*", "http://*/*"]
+}

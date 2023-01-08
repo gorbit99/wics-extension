@@ -1,0 +1,100 @@
+@import "../../colors.scss";
+
+.alert-root {
+  @include color-theme;
+
+  color: var(--text-color);
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .alert-container {
+    box-shadow: 0 0 0.5em var(--shadow-color);
+    background: var(--container-color);
+    border: 1px solid var(--primary-border-color);
+    border-radius: 0.5em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    max-width: 50ch;
+    min-width: 20em;
+    min-height: 10em;
+    overflow: auto;
+    justify-content: stretch;
+  }
+}
+
+.alert-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5em 1em;
+  background: var(--container-color);
+  border-bottom: 1px solid var(--container-border-color);
+  box-shadow: 0 0.05em 0.5em var(--shadow-color);
+
+  .alert-title {
+    font-size: 1.5em;
+    font-weight: bold;
+  }
+}
+
+.alert-body {
+  padding: 0.5em 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  flex: 1 1 auto;
+}
+
+.alert-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 1em;
+  padding: 0.5em 1em;
+  background: var(--container-color);
+  border-top: 1px solid var(--container-border-color);
+  box-shadow: 0 -0.05em 0.5em var(--shadow-color);
+}
+
+.alert-message {
+  line-height: 1.75em;
+}
+
+.alert-action-button {
+  padding: 0.5em 1em;
+  border: 3px solid var(--primary-border-color);
+  border-radius: 0.5em;
+  cursor: pointer;
+  color: var(--text-color);
+
+  &:hover {
+    background: var(--button-hover-color);
+  }
+
+  &.alert-action-secondary {
+    background: transparent;
+
+    &:hover {
+      background: var(--button-hover-color);
+    }
+  }
+
+  &.alert-action-danger {
+    background: var(--delete-color);
+    border-color: var(--delete-color);
+
+    &:hover {
+      background: var(--delete-hover-color);
+      border-color: var(--delete-hover-color);
+    }
+  }
+}

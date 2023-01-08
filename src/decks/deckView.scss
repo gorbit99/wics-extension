@@ -1,0 +1,180 @@
+.deck-view-header {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5em;
+  width: 90%;
+  border: 1px solid var(--primary-border-color);
+  border-radius: 0.5em;
+  box-shadow: 0 0 0.25em var(--shadow-color);
+  margin: 0.5em auto;
+  gap: 0.5em;
+  box-sizing: border-box;
+}
+
+.deck-view-data-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+
+  .deck-view-data-label {
+    color: var(--text-color);
+    flex: 0 0 30%;
+    user-select: none;
+  }
+
+  .deck-view-data-value {
+    color: var(--text-color);
+    user-select: none;
+  }
+
+  .deck-view-data-value-error {
+    color: var(--error-color);
+    user-select: none;
+    display: block;
+  }
+
+  .deck-view-data-value.editable {
+    cursor: pointer;
+
+    &::after {
+      content: "\f044";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      font-size: 0.8em;
+      margin-left: 0.5em;
+    }
+  }
+}
+
+.deck-view-item-list {
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  margin: 0.5em auto;
+  border: 1px solid var(--primary-border-color);
+  box-shadow: 0 0 0.25em var(--shadow-color);
+  flex-grow: 1;
+  border-radius: 0.5em;
+  overflow: hidden;
+
+  [data-field="type"] {
+    flex: 0 0 15%;
+    text-align: center;
+  }
+
+  [data-field="japanese"] {
+    flex: 0 0 20%;
+  }
+
+  [data-field="english"] {
+    flex: 0 0 35%;
+  }
+
+  [data-field="srsLevel"] {
+    flex: 0 0 25%;
+  }
+
+  [data-field="edit"] {
+    flex: 0 0 5%;
+  }
+}
+
+.deck-view-list-header {
+  display: flex;
+  border-bottom: 1px solid var(--primary-border-color);
+  scrollbar-gutter: stable;
+  overflow: auto;
+  flex: 0 0 auto;
+
+  .deck-view-header-field {
+    color: var(--text-color);
+    font-weight: bold;
+    text-align: center;
+    border-right: 1px solid var(--primary-border-color);
+    box-sizing: border-box;
+    padding: 0.5em;
+    user-select: none;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+}
+
+.deck-view-items {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-gutter: stable;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.deck-view-item {
+  display: flex;
+  flex-direction: row;
+  flex: 0 0 auto;
+  cursor: pointer;
+
+  [data-field="edit"] .deck-view-edit-icon {
+    color: var(--edit-color);
+  }
+
+  &:hover [data-field="edit"] .deck-view-edit-icon {
+    color: var(--edit-hover-color);
+  }
+}
+
+.deck-view-item-field {
+  border-right: 1px solid var(--primary-border-color);
+  color: var(--text-color);
+  box-sizing: border-box;
+  padding: 0.25em 0.5em;
+  user-select: none;
+
+  &:last-of-type {
+    border-right: none;
+  }
+}
+
+.deck-view-item-filler {
+  display: flex;
+  flex-direction: row;
+  flex: 0 0 auto;
+  flex: 1 1 auto;
+}
+
+.deck-view-actions {
+  align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1em;
+  padding: 0.5em;
+  border-top: 1px solid var(--primary-border-color);
+  box-shadow: 0 0 0.25em var(--shadow-color);
+}
+
+.deck-view-action-button {
+  background: var(--button-color);
+  color: var(--text-color);
+  border: 3px solid var(--primary-border-color);
+  border-radius: 0.5em;
+  padding: 0.5em;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--button-hover-color);
+  }
+
+  &.deck-view-delete-deck {
+    background: var(--container-color);
+    color: var(--text-color);
+    border-color: var(--delete-color);
+    border-width: 1px;
+
+    &:hover {
+      background: var(--delete-color);
+    }
+  }
+}
