@@ -1,4 +1,5 @@
 import { Config } from "./config";
+import { ConfigData } from "./configData";
 import { injectPopup } from "./injectedPopup";
 import optionsHtml from "./options.html?raw";
 import optionsStyle from "./options.scss?inline";
@@ -43,23 +44,40 @@ function activateTab(tab: HTMLElement, contentContainer: HTMLElement) {
 }
 
 async function initializeOptions(optionsRoot: HTMLElement) {
+  const config = await Config.getInstance().getConfig();
   const lessonPlacementSelect = optionsRoot.querySelector(
     "#lessonPlacementOption"
   ) as HTMLSelectElement;
-  lessonPlacementSelect.addEventListener("change", (event) => {
-    const target = event.target as HTMLSelectElement;
-    const lessonPlacement = target.value as "front" | "back" | "random";
-    Config.getInstance().setConfig("lessonPlacement", lessonPlacement);
-  });
-  lessonPlacementSelect.value = await Config.getInstance().getLessonPlacement();
+  initializeOption(
+    lessonPlacementSelect,
+    (value) => (lessonPlacementSelect.value = value),
+    () => lessonPlacementSelect.value as ConfigData["lessonPlacement"],
+    "lessonPlacement",
+    config
+  );
 
   const reviewPlacementSelect = optionsRoot.querySelector(
     "#reviewPlacementOption"
   ) as HTMLSelectElement;
-  reviewPlacementSelect.addEventListener("change", (event) => {
-    const target = event.target as HTMLSelectElement;
-    const reviewPlacement = target.value as "front" | "back" | "random";
-    Config.getInstance().setConfig("reviewPlacement", reviewPlacement);
+  initializeOption(
+    reviewPlacementSelect,
+    (value) => (reviewPlacementSelect.value = value),
+    () => reviewPlacementSelect.value as ConfigData["reviewPlacement"],
+    "reviewPlacement",
+    config
+  );
+}
+
+function initializeOption<Key extends keyof ConfigData>(
+  element: HTMLElement,
+  setValue: (value: ConfigData[Key]) => void,
+  getValue: () => ConfigData[Key],
+  key: Key,
+  config: ConfigData
+) {
+  element.addEventListener("change", () => {
+    const value = getValue();
+    Config.getInstance().setConfig(key as Key, value);
   });
-  reviewPlacementSelect.value = await Config.getInstance().getReviewPlacement();
+  setValue(config[key]);
 }

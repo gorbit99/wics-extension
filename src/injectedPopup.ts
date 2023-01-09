@@ -1,6 +1,7 @@
 import { closeAllAlerts } from "./components/alert";
 import injectedPopupHtml from "./injectedPopup.html?raw";
 import injectedPopupStyle from "./injectedPopup.scss?inline";
+import browser from "webextension-polyfill";
 
 export async function injectPopup(
   style: string,
@@ -55,7 +56,7 @@ interface DarkmodeRequest {
   type: "darkModeSwitch";
 }
 
-chrome.runtime.onMessage.addListener((request: DarkmodeRequest) => {
+browser.runtime.onMessage.addListener((request: DarkmodeRequest) => {
   switch (request.type) {
     case "darkModeSwitch":
       handleDarkModeSwitch();
@@ -63,20 +64,18 @@ chrome.runtime.onMessage.addListener((request: DarkmodeRequest) => {
   }
 });
 
-export function handleDarkModeSwitch(element?: HTMLElement): Promise<void> {
-  return new Promise((resolve) => {
-    chrome.storage.local.get("darkMode", (result) => {
-      if (!element) {
-        const roots = [...document.querySelectorAll(".popup-shadow-host")].map(
-          (host) => host.shadowRoot?.querySelector(".popup-root")!
-        );
-        roots.forEach((root) => root.classList.toggle("dark", result.darkMode));
-      } else {
-        element.classList.toggle("dark", result.darkMode);
-      }
-      resolve();
-    });
-  });
+export async function handleDarkModeSwitch(
+  element?: HTMLElement
+): Promise<void> {
+  const darkMode = (await browser.storage.local.get()).darkMode;
+  if (!element) {
+    const roots = [...document.querySelectorAll(".popup-shadow-host")].map(
+      (host) => host.shadowRoot?.querySelector(".popup-root")!
+    );
+    roots.forEach((root) => root.classList.toggle("dark", darkMode));
+  } else {
+    element.classList.toggle("dark", darkMode);
+  }
 }
 
 function handleDragging(popupRoot: HTMLElement) {

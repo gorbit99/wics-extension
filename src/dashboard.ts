@@ -1,9 +1,5 @@
 import { StorageHandler } from "./storageHandler";
 
-console.log("Load");
-
-export { };
-
 const pendingLessons = StorageHandler.getInstance().getPendingLessons();
 const pendingReviewIds = StorageHandler.getInstance().getPendingReviewIds();
 
@@ -137,7 +133,6 @@ const reviewButtonClasses = [0, 1, 50, 100, 250, 500, 1000];
 const lessonButtonClasses = [0, 1, 25, 50, 100, 250, 500];
 
 function getAppropriateClass(buttonType: "review" | "lesson", pending: number) {
-  console.log(buttonType, pending);
   const buttonClasses =
     buttonType === "review" ? reviewButtonClasses : lessonButtonClasses;
   const prefix =

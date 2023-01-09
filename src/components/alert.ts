@@ -1,6 +1,8 @@
 import alertHTML from "./alert/alert.html?raw";
 import alertStyle from "./alert/alert.scss?inline";
 
+import browser from "webextension-polyfill";
+
 interface AlertConfig {
   title: string;
   message: string;
@@ -38,7 +40,7 @@ export async function createAlert(config: AlertConfig) {
     config.buttons,
     () => {
       shadowContainer.remove();
-      chrome.runtime.onMessage.removeListener(onMessage);
+      browser.runtime.onMessage.removeListener(onMessage);
     }
   );
 
@@ -54,7 +56,7 @@ export async function createAlert(config: AlertConfig) {
     }
   };
 
-  chrome.runtime.onMessage.addListener(onMessage);
+  browser.runtime.onMessage.addListener(onMessage);
 }
 
 export function createButtons(
@@ -84,12 +86,8 @@ export function createButtons(
 export async function handleDarkModeSwitch(
   alertRoot: HTMLElement
 ): Promise<void> {
-  return new Promise((resolve) => {
-    chrome.storage.local.get("darkMode", (result) => {
-      alertRoot.classList.toggle("dark-mode", result.darkMode);
-      resolve();
-    });
-  });
+  const darkMode = (await browser.storage.local.get("darkMode")).darkMode;
+  alertRoot.classList.toggle("dark", darkMode);
 }
 
 export function closeAllAlerts() {

@@ -1,7 +1,5 @@
-import { extensionId } from "../config";
-import { WKReviewItem } from "../wanikani";
-
-export {};
+import { sendMessage } from "../injectMessaging";
+import { WKReviewItem } from "../wanikani/item/types";
 
 const originalFetch = window.fetch;
 
@@ -28,7 +26,6 @@ function getIdsFromUrl(url: string) {
 
 async function handleItemsEndpoint(ids: number[], options?: RequestInit) {
   const customItems = await getCustomItemData(ids.filter((id) => id < 0));
-  console.log("customItems", customItems);
   const remainingIds = ids.filter((id) => id >= 0);
   const response = await originalFetch(
     `/review/items?ids=${remainingIds.join(",")}`,
@@ -44,19 +41,8 @@ async function handleItemsEndpoint(ids: number[], options?: RequestInit) {
   return response;
 }
 
-async function getCustomItemData(ids: number[]): Promise<WKReviewItem[]> {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage(
-      extensionId,
-      {
-        type: "getReviewItemData",
-        items: ids,
-      },
-      (response) => {
-        resolve(response);
-      }
-    );
-  });
+function getCustomItemData(ids: number[]): Promise<WKReviewItem[]> {
+  return sendMessage(ids, "getReviewItemData");
 }
 
 function handleProgressEndpoint(
@@ -68,8 +54,5 @@ function handleProgressEndpoint(
       return [key, value];
     })
   );
-  chrome.runtime.sendMessage(extensionId, {
-    type: "makeProgress",
-    result: mappedResult,
-  });
+  sendMessage(mappedResult, "updateProgress");
 }

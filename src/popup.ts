@@ -22,24 +22,26 @@ document.querySelector(".dark-mode-switcher")?.addEventListener("click", () => {
 
 addScriptRunner(
   document.querySelector(".action-manage-decks")!,
-  "src/decks.js"
+  "/src/decks.js"
 );
-addScriptRunner(document.querySelector(".action-options")!, "src/options.js");
+addScriptRunner(document.querySelector(".action-options")!, "/src/options.js");
 
 function addScriptRunner(element: HTMLElement, script: string) {
-  element.addEventListener("click", () => {
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      tabs.forEach((tab) => {
-        if (tab.id === undefined) {
-          return;
-        }
-        browser.scripting.executeScript({
-          target: { tabId: tab.id! },
-          files: [script],
-        });
-
-        window.close();
+  element.addEventListener("click", async () => {
+    const tabs = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    tabs.forEach((tab) => {
+      if (tab.id === undefined) {
+        return;
+      }
+      browser.scripting.executeScript({
+        target: { tabId: tab.id! },
+        files: [script],
       });
+
+      window.close();
     });
   });
 }

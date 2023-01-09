@@ -52,7 +52,6 @@ export class WKSrsData {
     const reviewTime = new Date(
       this.lastReviewDate + stageLength * 60 * 60 * 1000
     );
-    console.log("reviewTime", reviewTime, this.lastReviewDate);
     return reviewTime < new Date();
   }
 

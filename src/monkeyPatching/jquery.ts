@@ -1,7 +1,6 @@
-import { ConfigData, extensionId } from "../config";
-import { WKLessonItem } from "../wanikani";
-
-export { };
+import { ConfigData } from "../configData";
+import { sendMessage } from "../injectMessaging";
+import { WKJsonItem, WKLessonItem } from "../wanikani/item/types";
 
 declare global {
   interface Window {
@@ -27,8 +26,7 @@ Object.defineProperty(window, "$", {
 function patchJquery($: JQueryStatic) {
   const originalGetJSON = $.getJSON;
   Object.defineProperty($, "getJSON", {
-    value: function(url: string, callback?: any) {
-      console.log("getJSON", url);
+    value: function (url: string, callback?: any) {
       if (url.startsWith("/review/queue")) {
         return originalGetJSON
           .call(this, url, { _: new Date().getTime() })
@@ -51,7 +49,7 @@ function patchJquery($: JQueryStatic) {
         const item = parseInt(url.split("/").pop()!);
         if (item < 0) {
           fetchItemJson(parseInt(url.split("/").pop()!)).then(callback);
-          return { fail: () => { } };
+          return { fail: () => {} };
         } else {
           return originalGetJSON.call(this, url, callback);
         }
@@ -61,7 +59,7 @@ function patchJquery($: JQueryStatic) {
   });
   const originalAjax = $.ajax;
   Object.defineProperty($, "ajax", {
-    value: function(
+    value: function (
       url: string | JQueryAjaxSettings,
       options?: JQueryAjaxSettings
     ) {
@@ -83,7 +81,6 @@ function patchJquery($: JQueryStatic) {
         ).keys.filter((item: number) => item >= 0);
       }
 
-      console.log("ajax", url);
       // @ts-ignore
       return originalAjax.call(this, url, options);
     },
@@ -111,21 +108,10 @@ async function appendCustomReviewItems(
       });
       return originalItems;
   }
-  return originalItems;
 }
 
 function getCustomReviewItems() {
-  return new Promise<number[]>((resolve) => {
-    return chrome.runtime.sendMessage(
-      extensionId,
-      {
-        type: "getReviewItems",
-      },
-      (response) => {
-        resolve(response);
-      }
-    );
-  });
+  return sendMessage<null, number[]>(null, "getReviewItems");
 }
 
 interface WKLessonResponse {
@@ -170,55 +156,17 @@ async function appendCustomLessonItems(
 }
 
 function getCustomLessonItems() {
-  return new Promise<WKLessonItem[]>((resolve) => {
-    return chrome.runtime.sendMessage(
-      extensionId,
-      {
-        type: "getLessonItems",
-      },
-      (response) => {
-        resolve(response);
-      }
-    );
-  });
+  return sendMessage<null, WKLessonItem[]>(null, "getLessonItems");
 }
 
-chrome.runtime.sendMessage(extensionId, {
-  type: "injectionReady",
-});
-
 async function handleLessonCompletion(customItems: number[]) {
-  chrome.runtime.sendMessage(extensionId, {
-    type: "lessonCompletion",
-    customItems,
-  });
+  sendMessage(customItems, "lessonCompletion");
 }
 
 async function fetchItemJson(item: number) {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage(
-      extensionId,
-      {
-        type: "fetchItemJson",
-        item,
-      },
-      (response) => {
-        resolve(response);
-      }
-    );
-  });
+  return sendMessage<number, WKJsonItem>(item, "fetchItemJson");
 }
 
 async function fetchConfig(): Promise<ConfigData> {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage(
-      extensionId,
-      {
-        type: "getConfig",
-      },
-      (response) => {
-        resolve(response);
-      }
-    );
-  });
+  return sendMessage<null, ConfigData>(null, "getConfig");
 }

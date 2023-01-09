@@ -15,10 +15,6 @@
   "{{firefox}}.browser_action": {
     "default_popup": "src/popup.html"
   },
-  "background": {
-    "{{chrome}}.service_worker": "src/background.ts",
-    "{{firefox}}.scripts": ["src/background.ts"]
-  },
   "content_scripts": [
     {
       "matches": [
@@ -38,7 +34,7 @@
       "run_at": "document_start"
     }
   ],
-  "web_accessible_resources": [
+  "{{chrome}}.web_accessible_resources": [
     {
       "resources": [
         "src/monkeyPatching/jquery.js",
@@ -47,9 +43,14 @@
       "matches": ["https://*.wanikani.com/*"]
     }
   ],
-  "permissions": ["storage", "tabs", "scripting"],
-  "externally_connectable": {
+  "{{firefox}}.web_accessible_resources": [
+    "src/monkeyPatching/jquery.js",
+    "src/monkeyPatching/fetch.js"
+  ],
+  "{{chrome}}.permissions": ["storage", "tabs", "scripting", "activeTab"],
+  "{{firefox}}.permissions": ["storage", "tabs", "scripting", "<all_urls>"],
+  "{{chrome}}.externally_connectable": {
     "matches": ["https://*.wanikani.com/*"]
   },
-  "host_permissions": ["https://*/*", "http://*/*"]
+  "{{chrome}}.host_permissions": ["*://*/*"]
 }

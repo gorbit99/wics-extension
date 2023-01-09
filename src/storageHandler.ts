@@ -50,7 +50,6 @@ export class StorageHandler {
   }
 
   async getReviewItemData(items: number[]): Promise<WKReviewItem[]> {
-    console.log(items);
     const decks = await this.getCustomDecks();
     return Promise.all(
       decks
@@ -140,7 +139,6 @@ export class StorageHandler {
     decks.forEach((deck) => {
       entries = entries.filter((entry) => {
         const deckItem = deck.getItem(parseInt(entry[0]));
-        console.log(deckItem, "Hello");
         if (!deckItem) {
           return true;
         }

@@ -1,7 +1,7 @@
 {
   "name": "wics",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "compile": "tsc --noEmit",
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.2.1",
+    "@types/firefox-webext-browser": "^94.0.1",
     "sass": "^1.57.1"
   }
 }
