@@ -1,43 +1,47 @@
 import { StorageHandler } from "../../storageHandler";
-import { WKRadicalItem } from "../../wanikani";
-import { Fields } from "./options";
+import { FieldValue, WKRadicalItem } from "../../wanikani";
+import { EditableMultilineFieldRenderer } from "../itemForm/editableMultiline";
+import { EditableValueFieldRenderer } from "../itemForm/editableValue";
+import { FieldGroupRenderer } from "../itemForm/fields";
+import { ListFieldRenderer } from "../itemForm/listField";
+import { MultiLineFieldRenderer } from "../itemForm/multilineField";
+import { TextFieldRenderer } from "../itemForm/textField";
 
-const radicalFields: Fields = {
-  characters: {
-    type: "text",
-    name: "Radical",
-    id: "characters",
-    minLength: 1,
-    maxLength: 1,
-  },
-  english: {
-    type: "list",
-    name: "English",
-    id: "english",
-    minOptions: 1,
-    reorderable: true,
-    innerFieldConstraints: {
-      minLength: 1,
-    },
-  },
-  kanji: {
-    type: "list",
-    name: "Kanji",
-    id: "kanji",
-    innerFieldConstraints: {
-      minLength: 1,
-      maxLength: 1,
-    },
-  },
-  meaningMnemonic: {
-    type: "multi-line",
-    id: "meaningMnemonic",
-    name: "Meaning Mnemonic",
-  },
+type Radical = {
+  characters: string;
+  english: string[];
+  kanji: string[];
+  meaningMnemonic: string;
 };
 
+const radicalInputFields: FieldGroupRenderer<Radical> = new FieldGroupRenderer({
+  characters: new TextFieldRenderer("Radical", 1, 1),
+  english: new ListFieldRenderer(
+    "English",
+    { minLength: 1 },
+    1,
+    undefined,
+    true
+  ),
+  kanji: new ListFieldRenderer("Kanji", { minLength: 1, maxLength: 1 }),
+  meaningMnemonic: new MultiLineFieldRenderer("Meaning Mnemonic"),
+});
+
+const radicalViewFields: FieldGroupRenderer<Radical> = new FieldGroupRenderer({
+  characters: new EditableValueFieldRenderer("Radical", 1, 1),
+  english: new ListFieldRenderer(
+    "English",
+    { minLength: 1 },
+    1,
+    undefined,
+    true
+  ),
+  kanji: new ListFieldRenderer("Kanji", { minLength: 1, maxLength: 1 }),
+  meaningMnemonic: new EditableMultilineFieldRenderer("Meaning Mnemonic"),
+});
+
 export async function convertToRadical(
-  values: Record<string, string | string[]>
+  values: Record<string, FieldValue>
 ): Promise<WKRadicalItem> {
   return new WKRadicalItem(
     await StorageHandler.getInstance().getNewId(),
@@ -53,4 +57,4 @@ export async function convertToRadical(
   );
 }
 
-export { radicalFields };
+export { radicalInputFields, radicalViewFields };

@@ -1,0 +1,209 @@
+import { FieldValue } from "../../wanikani";
+import { createErrorElement } from "./error";
+import {
+  FieldGroupInstance,
+  FieldGroupRenderer,
+  FieldInstance,
+  FieldRenderer,
+} from "./fields";
+
+export class GroupedListFieldRenderer<
+  RowValue extends Record<string, FieldValue>
+> extends FieldRenderer<RowValue[]> {
+  constructor(
+    name: string,
+    private rowRenderer: FieldGroupRenderer<RowValue>,
+    private reorderable: boolean = false,
+    private minOptions?: number,
+    private maxOptions?: number
+  ) {
+    super(name);
+  }
+
+  render(value?: RowValue[]): FieldInstance<RowValue[]> {
+    const hadDefaultValue = value != undefined;
+
+    const container = document.createElement("div");
+    container.classList.add("item-option-container");
+
+    const label = document.createElement("label");
+    label.classList.add("item-option-label");
+    label.textContent = this.name;
+    container.append(label);
+
+    const newButton = document.createElement("button");
+    newButton.classList.add("item-form-group-list-new-button");
+    const fontAwesomeIcon = document.createElement("i");
+    fontAwesomeIcon.classList.add(
+      "fa",
+      "fa-plus",
+      "item-form-group-list-add-icon"
+    );
+    newButton.append(fontAwesomeIcon, "New Row");
+
+    const valueContainer = document.createElement("div");
+    valueContainer.classList.add("item-option-value-container");
+
+    const list = document.createElement("div");
+    list.classList.add("item-form-group-list-list");
+    list.append(newButton);
+
+    if (this.reorderable) {
+      list.classList.add("item-form-reorderable");
+    }
+
+    const errorElement = createErrorElement();
+
+    valueContainer.append(list, errorElement);
+    container.append(valueContainer);
+
+    const instance = new GroupedListFieldInstance<RowValue>(
+      this.name,
+      container,
+      this.rowRenderer,
+      list,
+      newButton,
+      hadDefaultValue,
+      this.minOptions,
+      this.maxOptions
+    );
+
+    value?.forEach((rowValue) => instance.addValue(rowValue));
+
+    return instance;
+  }
+}
+
+export class GroupedListFieldInstance<
+  RowValue extends Record<string, FieldValue>
+> extends FieldInstance<RowValue[]> {
+  private instances: FieldGroupInstance<RowValue>[] = [];
+
+  constructor(
+    name: string,
+    private container: HTMLElement,
+    private rowRenderer: FieldGroupRenderer<RowValue>,
+    private list: HTMLElement,
+    private newButton: HTMLElement,
+    private hadDefaultValue: boolean,
+    private minOptions?: number,
+    private maxOptions?: number
+  ) {
+    super(name);
+
+    newButton.addEventListener("click", () => this.addValue());
+
+    this.onChange(() => this.updateLimitReached());
+  }
+
+  getHTML(): HTMLElement {
+    return this.container;
+  }
+
+  getValue(): RowValue[] {
+    return this.instances.map((instance) => instance.getValue());
+  }
+
+  validate(): boolean {
+    return this.instances
+      .map((instance) => instance.validate())
+      .every((x) => x);
+  }
+
+  public addValue(value?: RowValue): void {
+    const row = this.createRow(value);
+    this.list.insertBefore(row, this.newButton);
+    this.notifyChange();
+  }
+
+  private createRow(value?: RowValue): HTMLElement {
+    const rowContainer = document.createElement("div");
+    rowContainer.classList.add("item-form-group-list-row-container");
+    const row = document.createElement("div");
+    row.classList.add("item-form-group-list-row");
+
+    const rowInstance = this.rowRenderer.render(value);
+    row.append(...rowInstance.getHTML());
+    this.instances.push(rowInstance);
+    rowInstance.onChange(() => this.notifyChange());
+
+    const actionsContainer = document.createElement("div");
+    actionsContainer.classList.add("item-form-group-list-actions-container");
+
+    const moveUpButton = document.createElement("i");
+    moveUpButton.classList.add(
+      "fa",
+      "fa-caret-up",
+      "item-form-group-list-action",
+      "item-form-group-list-move-up"
+    );
+    const moveDownButton = document.createElement("i");
+    moveDownButton.classList.add(
+      "fa",
+      "fa-caret-down",
+      "item-form-group-list-action",
+      "item-form-group-list-move-down"
+    );
+    const deleteButton = document.createElement("i");
+    deleteButton.classList.add(
+      "fa",
+      "fa-xmark",
+      "item-form-group-list-action",
+      "item-form-group-list-delete"
+    );
+
+    moveUpButton.addEventListener("click", () => {
+      const previous = rowContainer.previousElementSibling;
+      if (previous) {
+        this.list.insertBefore(rowContainer, previous);
+      }
+
+      let index = this.instances.indexOf(rowInstance);
+      if (index > 0) {
+        this.instances.splice(index, 1);
+        this.instances.splice(index - 1, 0, rowInstance);
+      }
+      this.notifyChange();
+    });
+
+    moveDownButton.addEventListener("click", () => {
+      const next = rowContainer.nextElementSibling;
+      if (next) {
+        this.list.insertBefore(next, rowContainer);
+      }
+
+      let index = this.instances.indexOf(rowInstance);
+      if (index != this.instances.length - 1) {
+        this.instances.splice(index, 1);
+        this.instances.splice(index + 1, 0, rowInstance);
+      }
+      this.notifyChange();
+    });
+
+    deleteButton.addEventListener("click", () => {
+      rowContainer.remove();
+      this.instances.splice(this.instances.indexOf(rowInstance), 1);
+      this.notifyChange();
+    });
+
+    actionsContainer.append(moveUpButton, moveDownButton, deleteButton);
+
+    rowContainer.append(row, actionsContainer);
+
+    return rowContainer;
+  }
+
+  private updateLimitReached(): void {
+    if (!this.hadDefaultValue) {
+      return;
+    }
+    const values = this.getValue();
+    const minReached =
+      this.minOptions != undefined && values.length <= this.minOptions;
+    const maxReached =
+      this.maxOptions != undefined && values.length >= this.maxOptions;
+
+    this.list.classList.toggle("item-form-group-list-min-reached", minReached);
+    this.list.classList.toggle("item-form-group-list-max-reached", maxReached);
+  }
+}

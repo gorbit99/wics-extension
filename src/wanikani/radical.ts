@@ -1,12 +1,7 @@
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, WKRelationship } from "./common";
-import {
-  FieldValue,
-  WKItem,
-  WKJsonItem,
-  WKLessonItem,
-  WKReviewItem,
-} from "./item";
+import { FieldValue, WKItem } from "./item";
+import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
 import { WKKanjiItem, WKKanjiRadical } from "./kanji";
 import { WKSrsData } from "./srsData";
 
@@ -71,7 +66,7 @@ export class WKRadicalItem extends WKItem {
       id: this.id,
       characters: this.characters,
       en: this.english.join(", "),
-      stroke: -1,
+      stroke: "C",
       meaning_note: this.relationships.study_material?.meaning_note ?? null,
       rad: this.characters,
       mnemonic: this.meaningMnemonic,

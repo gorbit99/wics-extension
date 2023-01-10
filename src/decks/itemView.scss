@@ -1,3 +1,18 @@
+.item-view-content {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  width: 100%;
+  overscroll-behavior: contain;
+}
+
+.item-view-nav {
+  width: 100%;
+  border-bottom: 1px solid var(--primary-border-color);
+  box-shadow: 0 0 0.25em var(--shadow-color);
+}
+
 .item-view-data,
 .item-view-specific-data {
   flex: 0 0 auto;
@@ -12,7 +27,7 @@
 }
 
 .item-view-actions {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   width: 100%;
   display: flex;
   flex-direction: row;
@@ -20,6 +35,9 @@
   align-items: flex-end;
   padding: 1em;
   box-sizing: border-box;
+  border-top: 1px solid var(--primary-border-color);
+  box-shadow: 0 0 0.25em var(--shadow-color);
+  gap: 1em;
 }
 
 .item-view-action-button {
@@ -44,5 +62,13 @@
     &:hover {
       background: var(--delete-color);
     }
+  }
+
+  &.item-view-save-button {
+    display: none;
+  }
+
+  &.item-view-save-button.active {
+    display: block;
   }
 }

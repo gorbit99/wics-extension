@@ -1,12 +1,7 @@
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, AuxiliaryReading, WKRelationship } from "./common";
-import {
-  FieldValue,
-  WKItem,
-  WKJsonItem,
-  WKLessonItem,
-  WKReviewItem,
-} from "./item";
+import { FieldValue, WKItem } from "./item";
+import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
 import { WKKanjiItem, WKKanjiVocabulary } from "./kanji";
 import { WKSrsData } from "./srsData";
 
@@ -20,7 +15,7 @@ export class WKVocabularyItem extends WKItem {
     meaningMnemonic: string,
     private readingMnemonic: string,
     private kanji: number[],
-    private sentences: [string, string][],
+    private sentences: { english: string; japanese: string }[],
     private collocations: Collocation[],
     private partsOfSpeech: string[],
     auxiliaryMeanings: AuxiliaryMeaning[],
@@ -70,7 +65,10 @@ export class WKVocabularyItem extends WKItem {
       type: "Vocabulary",
       kanji: await this.mapKanji(),
       category: "Vocabulary",
-      sentences: this.sentences,
+      sentences: this.sentences.map((sentence) => [
+        sentence.english,
+        sentence.japanese,
+      ]),
       characters: this.characters,
       collocations: this.collocations,
       parts_of_speech: this.partsOfSpeech,
@@ -86,13 +84,16 @@ export class WKVocabularyItem extends WKItem {
       type: "Vocabulary",
       characters: this.characters,
       en: this.english.join(", "),
-      stroke: -1,
+      stroke: "C",
       meaning_note: this.relationships.study_material?.meaning_note ?? null,
       meaning_explanation: this.meaningMnemonic,
       reading_explanation: this.readingMnemonic,
       voc: this.characters,
       kana: this.kana.join(", "),
-      sentences: this.sentences,
+      sentences: this.sentences.map((sentence) => [
+        sentence.english,
+        sentence.japanese,
+      ]),
       reading_note: this.relationships.study_material?.reading_note ?? null,
       parts_of_speech: this.partsOfSpeech,
       // TODO: audio, related
@@ -162,7 +163,7 @@ export class WKVocabularyItem extends WKItem {
         this.kanji = value as number[];
         break;
       case "sentences":
-        this.sentences = value as [string, string][];
+        this.sentences = value as { japanese: string; english: string }[];
         break;
       case "collocations":
         this.collocations = value as Collocation[];

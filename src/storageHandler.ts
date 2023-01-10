@@ -1,11 +1,12 @@
 import { CustomDeck } from "./storage/customDeck";
 import browser from "webextension-polyfill";
-import { WKItem, WKJsonItem, WKLessonItem, WKReviewItem } from "./wanikani";
+import { WKItem } from "./wanikani";
+import { WKJsonItem, WKLessonItem, WKReviewItem } from "./wanikani/item/types";
 
 export class StorageHandler {
   private static instance: StorageHandler;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): StorageHandler {
     if (!StorageHandler.instance) {
@@ -72,17 +73,16 @@ export class StorageHandler {
       .filter((item) => item !== undefined) as WKItem[];
   }
 
-  async radicalsToIds(radicals: string[]): Promise<number[]> {
+  async radicalsToIds(_radicals: string[]): Promise<number[]> {
+    return [];
+  }
+
+  async kanjiToIds(_kanji: string[]): Promise<number[]> {
     // TODO: implement
     return [];
   }
 
-  async kanjiToIds(kanji: string[]): Promise<number[]> {
-    // TODO: implement
-    return [];
-  }
-
-  async vocabularyToIds(vocabulary: string[]): Promise<number[]> {
+  async vocabularyToIds(_vocabulary: string[]): Promise<number[]> {
     // TODO: implement
     return [];
   }

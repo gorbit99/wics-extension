@@ -67,6 +67,12 @@ export abstract class WKItem {
     return this.srs;
   }
 
+  updateData(data: Record<string, any>): void {
+    for (const key in data) {
+      this.setValue(key, data[key]);
+    }
+  }
+
   getValue(id: string): FieldValue {
     switch (id) {
       case "id":
@@ -130,7 +136,7 @@ export type FieldValue =
   | AuxiliaryMeaning[]
   | AuxiliaryReading[]
   | WKRelationship
-  | [string, string][]
+  | { english: string; japanese: string }[]
   | Audio[]
   | Collocation[]
   | null;

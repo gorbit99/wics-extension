@@ -25,6 +25,6 @@ export interface WKJsonItem {
   id: number;
   characters: string;
   en: string;
-  stroke: number;
+  stroke: number | string;
   meaning_note: string | null;
 }

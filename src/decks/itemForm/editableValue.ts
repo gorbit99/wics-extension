@@ -1,85 +1,110 @@
-import { createErrorElement } from "../newItem/error";
-import { validateLength } from "../newItem/validation";
+import { createErrorElement } from "../itemForm/error";
+import { validateLength } from "../itemForm/validation";
+import { FieldInstance, FieldRenderer } from "./fields";
 
-export interface TextField {
-  type: "text";
-  name: string;
-  id: string;
-  minLength?: number;
-  maxLength?: number;
+export class EditableValueFieldRenderer extends FieldRenderer<string> {
+  constructor(
+    name: string,
+    private minLength?: number,
+    private maxLength?: number
+  ) {
+    super(name);
+  }
+
+  render(value?: string): EditableValueFieldInstance {
+    const optionContainer = document.createElement("div");
+    optionContainer.classList.add("item-option-container");
+
+    const valueContainer = document.createElement("div");
+    valueContainer.classList.add("item-option-value-container");
+
+    const label = document.createElement("label");
+    label.classList.add("item-option-label");
+    label.textContent = this.name;
+    optionContainer.append(label);
+
+    const valueElement = document.createElement("span");
+    valueElement.classList.add("item-option-value", "editable");
+    valueElement.textContent = value ?? "";
+
+    const errorElement = createErrorElement();
+
+    valueContainer.append(valueElement, errorElement);
+
+    optionContainer.append(valueContainer);
+
+    return new EditableValueFieldInstance(
+      this.name,
+      valueElement,
+      optionContainer,
+      errorElement,
+      this.minLength,
+      this.maxLength
+    );
+  }
 }
 
-export function renderEditableValue(
-  field: TextField,
-  value: string,
-  onChange?: (value: string) => void
-): HTMLElement {
-  const optionContainer = document.createElement("div");
-  optionContainer.classList.add("item-option-container");
+export class EditableValueFieldInstance extends FieldInstance<string> {
+  constructor(
+    name: string,
+    private valueElement: HTMLElement,
+    private container: HTMLElement,
+    private errorElement: HTMLElement,
+    private minLength?: number,
+    private maxLength?: number
+  ) {
+    super(name);
 
-  const valueContainer = document.createElement("div");
-  valueContainer.classList.add("item-option-value-container");
+    valueElement.addEventListener("click", () => {
+      this.createInputElement();
+    });
+  }
 
-  const label = document.createElement("label");
-  label.classList.add("item-option-label");
-  label.textContent = field.name;
-  optionContainer.append(label);
+  getHTML(): HTMLElement {
+    return this.container;
+  }
+  getValue(): string {
+    return this.valueElement.textContent || "";
+  }
+  validate(): boolean {
+    const value = this.valueElement.textContent || "";
+    const error = validateLength(value, this.minLength, this.maxLength);
+    this.errorElement.textContent = error ?? "";
+    return !error;
+  }
 
-  const valueElement = document.createElement("span");
-  valueElement.classList.add("item-option-value", "editable");
-  valueElement.textContent = value;
+  private createInputElement() {
+    const input = document.createElement("input");
+    input.classList.add("item-option-value-input");
+    input.value = this.valueElement.textContent || "";
 
-  valueElement.addEventListener("click", () => {
-    createInputElement(field, valueElement, onChange);
-  });
+    input.addEventListener("blur", () => {
+      const value = input.value;
 
-  valueContainer.append(valueElement);
+      const error = validateLength(value, this.minLength, this.maxLength);
+      if (error) {
+        this.errorElement.textContent = error;
+        input.focus();
+        return;
+      }
 
-  optionContainer.append(valueContainer);
+      this.valueElement.textContent = value;
+      this.errorElement.textContent = "";
+      input.replaceWith(this.valueElement);
+      this.notifyChange();
+    });
 
-  return optionContainer;
-}
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        input.blur();
+      }
+      if (event.key === "Escape") {
+        input.value = this.valueElement.textContent || "";
+        input.blur();
+      }
+    });
 
-function createInputElement(
-  field: TextField,
-  valueElement: HTMLElement,
-  onChange?: (value: string) => void
-) {
-  const input = document.createElement("input");
-  input.classList.add("item-option-value-input");
-  input.value = valueElement.textContent || "";
-  input.type = field.type;
-  input.id = field.id;
-
-  const errorElement = createErrorElement();
-
-  input.addEventListener("blur", () => {
-    const value = input.value;
-
-    const error = validateLength(value, field.minLength, field.maxLength);
-    if (error) {
-      errorElement.textContent = error;
-      input.focus();
-      return;
-    }
-
-    valueElement.textContent = value;
-    errorElement.remove();
-    input.replaceWith(valueElement);
-    onChange?.(value);
-  });
-
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      input.blur();
-    }
-    if (event.key === "Escape") {
-      input.value = valueElement.textContent || "";
-      input.blur();
-    }
-  });
-
-  valueElement.replaceWith(input);
-  input.after(errorElement);
-  input.focus();
+    this.valueElement.replaceWith(input);
+    input.focus();
+  }
 }

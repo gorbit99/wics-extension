@@ -1,3 +1,17 @@
+.new-item-nav {
+  width: 100%;
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--primary-border-color);
+  box-shadow: 0 0 0.25em var(--shadow-color);
+}
+
+.new-item-options-container {
+  flex: 1 1 auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  width: 100%;
+}
+
 .new-item-option-error {
   color: var(--error-color);
   user-select: none;
@@ -10,85 +24,6 @@
   padding-top: 1em;
 }
 
-.new-item-list-option-list {
-  display: flex;
-  flex: 1 1 auto;
-  border: 1px solid var(--primary-border-color);
-  border-radius: 0.5em;
-  padding: 0.5em;
-  gap: 0.5em;
-  box-shadow: 0 0 0.25em var(--shadow-color);
-  flex-wrap: wrap;
-}
-
-.new-item-list-drop-target {
-  flex: 1 1 auto;
-}
-
-.new-item-list-new-button {
-  background: var(--button-color);
-  color: var(--text-color);
-  border: 1px solid var(--primary-border-color);
-  padding: 0.5em;
-  cursor: pointer;
-  user-select: none;
-  border-radius: 0.5em;
-
-  &:hover {
-    background: var(--button-hover-color);
-  }
-
-  .new-item-list-max-reached & {
-    display: none;
-  }
-}
-
-.new-item-list-value {
-  color: var(--text-color);
-  background: var(--button-color);
-  border: 1px solid var(--primary-border-color);
-  border-radius: 0.5em;
-  padding: 0.5em;
-  user-select: none;
-  position: relative;
-
-  .new-item-list-remove-button {
-    color: var(--error-color);
-    margin-left: 0.5em;
-    cursor: pointer;
-  }
-
-  .new-item-list-min-reached & .new-item-list-remove-button {
-    display: none;
-  }
-
-  &[data-dragover="true"]::before {
-    position: absolute;
-    content: "\f0d8";
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    font-size: 0.8em;
-    margin-right: 0.5em;
-    left: -0.5em;
-    bottom: -0.5em;
-  }
-
-  [data-dragover="true"] &:last-of-type::before {
-    position: absolute;
-    content: "\f0d8";
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    font-size: 0.8em;
-    margin-right: 0.5em;
-    right: -1em;
-    bottom: -0.5em;
-  }
-
-  .new-item-reorderable & {
-    cursor: move;
-  }
-}
-
 .new-item-actions {
   display: flex;
   flex-direction: row;
@@ -98,6 +33,9 @@
   padding: 0.5em 1em;
   box-sizing: border-box;
   gap: 2em;
+  flex: 0 0 auto;
+  border-top: 1px solid var(--primary-border-color);
+  box-shadow: 0 0 0.25em var(--shadow-color);
 
   .new-item-action-button {
     background: var(--button-color);

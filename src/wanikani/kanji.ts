@@ -1,13 +1,8 @@
 import { WKSrsData } from ".";
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, AuxiliaryReading, WKRelationship } from "./common";
-import {
-  FieldValue,
-  WKItem,
-  WKJsonItem,
-  WKLessonItem,
-  WKReviewItem,
-} from "./item";
+import { FieldValue, WKItem } from "./item";
+import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
 import { WKRadicalItem, WKRadicalKanji } from "./radical";
 import { WKVocabularyItem, WKVocabularyKanji } from "./vocabulary";
 
@@ -92,7 +87,7 @@ export class WKKanjiItem extends WKItem {
       id: this.id,
       characters: this.characters,
       en: this.english.join(", "),
-      stroke: -1,
+      stroke: "C",
       meaning_note: this.relationships.study_material?.meaning_note ?? null,
       kan: this.characters,
       meaning_mnemonic: this.meaningMnemonic,

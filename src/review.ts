@@ -120,7 +120,6 @@ window.addEventListener("message", async (event) => {
   }
 
   const message = event.data as ReceivedMessage;
-  console.log("Received message", message);
 
   if (message.source !== "page-script") {
     return;

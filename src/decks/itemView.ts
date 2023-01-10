@@ -1,13 +1,12 @@
 import { createAlert } from "../components/alert";
 import { CustomDeck } from "../storage/customDeck";
 import { StorageHandler } from "../storageHandler";
-import { FieldValue, WKItem } from "../wanikani";
+import { WKItem } from "../wanikani";
 import { renderDeckView } from "./deckView";
 import itemViewHtml from "./itemView.html?raw";
-import { renderOptionFields } from "./itemView/options";
-import { kanjiFields } from "./newItem/kanji";
-import { radicalFields } from "./newItem/radical";
-import { vocabularyFields } from "./newItem/vocabulary";
+import { kanjiViewFields } from "./newItem/kanji";
+import { radicalViewFields } from "./newItem/radical";
+import { vocabularyViewFields } from "./newItem/vocabulary";
 
 export function renderItemView(
   deck: CustomDeck,
@@ -21,19 +20,39 @@ export function renderItemView(
     renderDeckView(deck, decksRoot);
   });
 
-  renderOptionFields(
-    decksRoot,
-    {
-      radical: radicalFields,
-      kanji: kanjiFields,
-      vocabulary: vocabularyFields,
-    }[item.type],
-    (id: string) => item.getValue(id),
-    (id: string, value: FieldValue) => {
-      item.setValue(id, value);
-      StorageHandler.getInstance().updateDeck(deck.getName(), deck);
+  const viewFields = {
+    radical: radicalViewFields,
+    kanji: kanjiViewFields,
+    vocabulary: vocabularyViewFields,
+  }[item.type];
+
+  const itemGroupInstance = viewFields.render((id: string) => {
+    return item.getValue(id) as string | string[];
+  });
+
+  const saveButton = decksRoot.querySelector(".item-view-save-button")!;
+
+  itemGroupInstance.onChange(() => {
+    saveButton.classList.add("active");
+  });
+
+  saveButton.addEventListener("click", async () => {
+    if (!itemGroupInstance.validate()) {
+      return;
     }
-  );
+    const value = itemGroupInstance.getValue();
+    item.updateData(value);
+    await StorageHandler.getInstance().updateDeck(deck.getName(), deck);
+
+    saveButton.classList.remove("active");
+  });
+
+  const optionsContainer = decksRoot.querySelector(
+    ".item-view-specific-data"
+  ) as HTMLElement;
+
+  optionsContainer.innerHTML = "";
+  optionsContainer.append(...itemGroupInstance.getHTML());
 
   const typeField = decksRoot.querySelector(
     "[data-field='type']"
