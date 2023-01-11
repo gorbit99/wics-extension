@@ -1,0 +1,13 @@
+@mixin has-border($style) {
+  border-radius: 0.5em;
+
+  @if $style == primary {
+    border: 1px solid var(--primary-border-color);
+    box-shadow: 0 0 0.25em var(--shadow-color);
+  } @else if $style == secondary {
+    border: 1px solid var(--secondary-border-color);
+  } @else if $style == input {
+    border: 1px solid var(--primary-border-color);
+    border-radius: 0.25em;
+  }
+}

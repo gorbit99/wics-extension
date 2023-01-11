@@ -1,6 +1,6 @@
 import { createErrorElement } from "./error";
 import { FieldInstance, FieldRenderer } from "./fields";
-import { validateLength } from "./validation";
+import { validateLength, validateTextType } from "./validation";
 
 export class ListFieldRenderer extends FieldRenderer<string[]> {
   constructor(
@@ -8,6 +8,7 @@ export class ListFieldRenderer extends FieldRenderer<string[]> {
     private innerFieldConstraints: {
       minLength?: number;
       maxLength?: number;
+      type?: "any" | "kana" | "japanese" | "latin";
     } = {},
     private minOptions?: number,
     private maxOptions?: number,
@@ -41,7 +42,11 @@ export class ListFieldInstance extends FieldInstance<string[]> {
     private reorderable: boolean = false,
     private minOptions?: number,
     private maxOptions?: number,
-    private innerFieldConstraints?: { minLength?: number; maxLength?: number }
+    private innerFieldConstraints?: {
+      minLength?: number;
+      maxLength?: number;
+      type?: "any" | "kana" | "japanese" | "latin";
+    }
   ) {
     super(name);
 
@@ -56,7 +61,7 @@ export class ListFieldInstance extends FieldInstance<string[]> {
     this.container.append(label);
 
     this.newButton = document.createElement("button");
-    this.newButton.classList.add("item-form-list-new-button");
+    this.newButton.classList.add("item-form-list-new-button", "button");
     const fontAwesomeIcon = document.createElement("i");
     fontAwesomeIcon.classList.add("fa");
     fontAwesomeIcon.classList.add("fa-plus");
@@ -134,11 +139,16 @@ export class ListFieldInstance extends FieldInstance<string[]> {
 
     let anyError = false;
     this.list.querySelectorAll(".item-form-list-value").forEach((element) => {
-      const error = validateLength(
-        element.textContent ?? "",
-        this.minOptions,
-        this.maxOptions
-      );
+      const error =
+        validateLength(
+          element.textContent ?? "",
+          this.minOptions,
+          this.maxOptions
+        ) ??
+        validateTextType(
+          element.textContent ?? "",
+          this.innerFieldConstraints?.type
+        );
       if (error) {
         anyError = true;
         (element as HTMLElement).querySelector(
@@ -160,11 +170,12 @@ export class ListFieldInstance extends FieldInstance<string[]> {
       const value = inputField.value;
 
       if (value.length !== 0) {
-        const error = validateLength(
-          value,
-          this.innerFieldConstraints?.minLength,
-          this.innerFieldConstraints?.maxLength
-        );
+        const error =
+          validateLength(
+            value,
+            this.innerFieldConstraints?.minLength,
+            this.innerFieldConstraints?.maxLength
+          ) ?? validateTextType(value, this.innerFieldConstraints?.type);
         this.errorElement.textContent = error ?? "";
         if (error) {
           inputField.focus();

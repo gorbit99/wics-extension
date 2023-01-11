@@ -1,3 +1,5 @@
+@import "src/components/mixins.scss";
+
 .item-option-container {
   display: flex;
   flex-direction: row;
@@ -31,7 +33,8 @@
   box-shadow: 0 0 0.25em var(--shadow-color);
 
   .item-button {
-    flex: 0 0 calc(100% / 3);
+    flex: 1 1;
+    border-radius: 0;
   }
 
   .item-button:first-of-type {
@@ -43,19 +46,6 @@
   }
 
   .item-button.active {
-    background: var(--button-hover-color);
-  }
-}
-
-.item-button {
-  background: var(--button-color);
-  color: var(--text-color);
-  border: 1px solid var(--primary-border-color);
-  padding: 0.5em;
-  cursor: pointer;
-  user-select: none;
-
-  &:hover {
     background: var(--button-hover-color);
   }
 }
@@ -92,14 +82,13 @@
 }
 
 .item-form-group-list-list {
+  @include has-border(primary);
+
   display: flex;
   flex-direction: column;
   gap: 0.5em;
   padding: 0.5em;
   box-sizing: border-box;
-  border: 1px solid var(--primary-border-color);
-  border-radius: 0.5em;
-  box-shadow: 0 0 0.25em var(--shadow-color);
 }
 
 .item-form-group-list-row-container {
@@ -107,9 +96,8 @@
   flex-direction: row;
 
   .item-form-group-list-row {
+    @include has-border(secondary);
     flex: 1 1 auto;
-    border: 1px solid var(--secondary-border-color);
-    border-radius: 0.5em;
     padding: 0.5em;
   }
 }
@@ -132,6 +120,11 @@
   .item-form-group-list-move-up,
   .item-form-group-list-move-down {
     color: var(--button-color);
+    display: none;
+
+    .item-form-reorderable {
+      display: block;
+    }
 
     &:hover {
       color: var(--button-hover-color);
@@ -160,18 +153,6 @@
 }
 
 .item-form-group-list-new-button {
-  background: var(--button-color);
-  color: var(--text-color);
-  border: 1px solid var(--primary-border-color);
-  padding: 0.5em;
-  cursor: pointer;
-  user-select: none;
-  border-radius: 0.5em;
-
-  &:hover {
-    background: var(--button-hover-color);
-  }
-
   .item-form-group-list-max-reached & {
     display: none;
   }
@@ -186,13 +167,12 @@
 }
 
 .item-form-list-option-list {
+  @include has-border(primary);
+
   display: flex;
   flex: 1 1 auto;
-  border: 1px solid var(--primary-border-color);
-  border-radius: 0.5em;
   padding: 0.5em;
   gap: 0.5em;
-  box-shadow: 0 0 0.25em var(--shadow-color);
   flex-wrap: wrap;
 }
 
@@ -200,29 +180,15 @@
   flex: 1 1 auto;
 }
 
-.item-form-list-new-button {
-  background: var(--button-color);
-  color: var(--text-color);
-  border: 1px solid var(--primary-border-color);
-  padding: 0.5em;
-  cursor: pointer;
-  user-select: none;
-  border-radius: 0.5em;
-
-  &:hover {
-    background: var(--button-hover-color);
-  }
-
-  .item-form-list-max-reached & {
-    display: none;
-  }
+.item-form-list-max-reached .item-form-list-new-button {
+  display: none;
 }
 
 .item-form-list-value {
+  @include has-border(input);
+
   color: var(--text-color);
   background: var(--button-color);
-  border: 1px solid var(--primary-border-color);
-  border-radius: 0.5em;
   padding: 0.5em;
   user-select: none;
   position: relative;

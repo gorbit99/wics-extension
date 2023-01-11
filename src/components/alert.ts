@@ -78,7 +78,12 @@ export function createButtons(
         closeAlert();
       }
     });
-    buttonElement.classList.add(`alert-action-${button.style}`);
+    const buttonClass = {
+      primary: "",
+      secondary: "button-secondary",
+      danger: "button-danger",
+    }[button.style];
+    buttonElement.classList.add(buttonClass);
     buttonContainer.append(buttonElement);
   });
 }

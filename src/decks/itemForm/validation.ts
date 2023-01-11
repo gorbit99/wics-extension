@@ -12,3 +12,24 @@ export function validateLength(
   }
   return null;
 }
+
+export function validateTextType(
+  value: string,
+  type?: "any" | "kana" | "japanese" | "latin"
+): string | null {
+  if (type === "any" || !type) {
+    return null;
+  }
+
+  const regex = {
+    kana: /^[\u3040-\u30ff]*$/,
+    japanese: /^[\u3040-\u30ff\u4e00-\u9faf]*$/,
+    latin: /^[\x20-\x7e]*$/,
+  }[type];
+
+  if (!regex.test(value)) {
+    return `Must be entirely made up of ${type} characters`;
+  }
+
+  return null;
+}

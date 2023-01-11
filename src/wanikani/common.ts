@@ -6,10 +6,12 @@ export interface WKRelationship {
     meaning_synonyms: string[];
   } | null;
 }
+
 export interface AuxiliaryMeaning {
   type: "blacklist" | "whitelist";
   meaning: string;
 }
+
 export interface AuxiliaryReading {
   type: "blacklist" | "whitelist";
   reading: string;

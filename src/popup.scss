@@ -1,4 +1,7 @@
+@use "src/components/commonComponents.scss";
+
 @import "./colors.scss";
+@import "src/components/mixins.scss";
 
 html {
   background: var(--container-color);
@@ -25,13 +28,15 @@ h1 {
 }
 
 .action-container {
+  @include has-border(secondary);
+
   width: 90%;
   margin-bottom: 1.5rem;
-  border: 1px solid var(--secondary-border-color);
-  border-radius: 5px;
   padding: 0.5rem;
-  box-shadow: 1px 1px 3px var(--shadow-color);
   position: relative;
+  gap: 0.5em;
+  display: flex;
+  flex-direction: column;
 
   &:last-of-type {
     margin-bottom: 0;
@@ -51,23 +56,8 @@ h1 {
 
 button {
   width: 100%;
-  background: var(--button-color);
-  color: var(--text-color);
-  border: none;
-  padding: 0.5rem;
-  border-radius: 5px;
+  font-size: 1.2em;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
-  box-shadow: 1px 1px 3px var(--shadow-color);
-  cursor: pointer;
-
-  &:last-of-type {
-    margin-bottom: 0;
-  }
-
-  &:hover {
-    background: var(--button-hover-color);
-  }
 }
 
 .header {

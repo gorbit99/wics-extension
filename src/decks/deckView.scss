@@ -1,11 +1,12 @@
+@import "src/components/mixins.scss";
+
 .deck-view-header {
+  @include has-border(primary);
+
   display: flex;
   flex-direction: column;
   padding: 0.5em;
   width: 90%;
-  border: 1px solid var(--primary-border-color);
-  border-radius: 0.5em;
-  box-shadow: 0 0 0.25em var(--shadow-color);
   margin: 0.5em auto;
   gap: 0.5em;
   box-sizing: border-box;
@@ -47,14 +48,13 @@
 }
 
 .deck-view-item-list {
+  @include has-border(primary);
+
   display: flex;
   flex-direction: column;
   width: 90%;
   margin: 0.5em auto;
-  border: 1px solid var(--primary-border-color);
-  box-shadow: 0 0 0.25em var(--shadow-color);
   flex-grow: 1;
-  border-radius: 0.5em;
   overflow: hidden;
 
   [data-field="type"] {
@@ -153,28 +153,4 @@
   padding: 0.5em;
   border-top: 1px solid var(--primary-border-color);
   box-shadow: 0 0 0.25em var(--shadow-color);
-}
-
-.deck-view-action-button {
-  background: var(--button-color);
-  color: var(--text-color);
-  border: 3px solid var(--primary-border-color);
-  border-radius: 0.5em;
-  padding: 0.5em;
-  cursor: pointer;
-
-  &:hover {
-    background: var(--button-hover-color);
-  }
-
-  &.deck-view-delete-deck {
-    background: var(--container-color);
-    color: var(--text-color);
-    border-color: var(--delete-color);
-    border-width: 1px;
-
-    &:hover {
-      background: var(--delete-color);
-    }
-  }
 }

@@ -36,28 +36,6 @@
   flex: 0 0 auto;
   border-top: 1px solid var(--primary-border-color);
   box-shadow: 0 0 0.25em var(--shadow-color);
-
-  .new-item-action-button {
-    background: var(--button-color);
-    color: var(--text-color);
-    border: 1px solid var(--primary-border-color);
-    padding: 0.5em;
-    cursor: pointer;
-    user-select: none;
-    border-radius: 0.5em;
-    border: 3px solid var(--button-color);
-
-    font-size: 1em;
-
-    &:hover {
-      background: var(--button-hover-color);
-    }
-  }
-
-  .new-item-cancel {
-    background: transparent;
-    border: 3px solid var(buton-color);
-  }
 }
 
 .new-item-multiline-input {

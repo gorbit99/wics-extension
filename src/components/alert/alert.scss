@@ -1,4 +1,6 @@
+@use "src/components/commonComponents.scss";
 @import "../../colors.scss";
+@import "src/components/mixins.scss";
 
 .alert-root {
   @include color-theme;
@@ -15,10 +17,9 @@
   align-items: center;
 
   .alert-container {
-    box-shadow: 0 0 0.5em var(--shadow-color);
+    @include has-border(primary);
+
     background: var(--container-color);
-    border: 1px solid var(--primary-border-color);
-    border-radius: 0.5em;
     display: flex;
     flex-direction: column;
     gap: 0.5em;
@@ -67,34 +68,4 @@
 
 .alert-message {
   line-height: 1.75em;
-}
-
-.alert-action-button {
-  padding: 0.5em 1em;
-  border: 3px solid var(--primary-border-color);
-  border-radius: 0.5em;
-  cursor: pointer;
-  color: var(--text-color);
-
-  &:hover {
-    background: var(--button-hover-color);
-  }
-
-  &.alert-action-secondary {
-    background: transparent;
-
-    &:hover {
-      background: var(--button-hover-color);
-    }
-  }
-
-  &.alert-action-danger {
-    background: var(--delete-color);
-    border-color: var(--delete-color);
-
-    &:hover {
-      background: var(--delete-hover-color);
-      border-color: var(--delete-hover-color);
-    }
-  }
 }

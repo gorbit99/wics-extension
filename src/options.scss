@@ -1,3 +1,5 @@
+@import "src/components/mixins.scss";
+
 .options-tabs {
   display: flex;
   flex-direction: row;
@@ -64,11 +66,10 @@
   }
 
   select.options-input {
+    @include has-border(input);
     background: var(--container-darker-color);
     color: var(--text-color);
-    border: 1px solid var(--secondary-border-color);
     padding: 0.5em;
-    border-radius: 0.5em;
     accent-color: var(--button-hover-color);
   }
 

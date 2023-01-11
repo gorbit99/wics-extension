@@ -24,7 +24,7 @@ export class SelectFieldRenderer<
     buttonGroup.classList.add("item-button-group");
     Object.entries(this.options).forEach(([key, text], i) => {
       const button = document.createElement("button");
-      button.classList.add("item-button");
+      button.classList.add("item-button", "button");
       button.textContent = text as string;
       button.dataset["value"] = key;
       if (value) {

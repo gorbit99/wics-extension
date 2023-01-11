@@ -1,12 +1,13 @@
 import { createErrorElement } from "../itemForm/error";
-import { validateLength } from "../itemForm/validation";
+import { validateLength, validateTextType } from "../itemForm/validation";
 import { FieldInstance, FieldRenderer } from "./fields";
 
 export class EditableValueFieldRenderer extends FieldRenderer<string> {
   constructor(
     name: string,
     private minLength?: number,
-    private maxLength?: number
+    private maxLength?: number,
+    private type: "any" | "kana" | "japanese" | "latin" = "any"
   ) {
     super(name);
   }
@@ -39,7 +40,8 @@ export class EditableValueFieldRenderer extends FieldRenderer<string> {
       optionContainer,
       errorElement,
       this.minLength,
-      this.maxLength
+      this.maxLength,
+      this.type
     );
   }
 }
@@ -51,7 +53,8 @@ export class EditableValueFieldInstance extends FieldInstance<string> {
     private container: HTMLElement,
     private errorElement: HTMLElement,
     private minLength?: number,
-    private maxLength?: number
+    private maxLength?: number,
+    private type: "any" | "kana" | "japanese" | "latin" = "any"
   ) {
     super(name);
 
@@ -63,12 +66,16 @@ export class EditableValueFieldInstance extends FieldInstance<string> {
   getHTML(): HTMLElement {
     return this.container;
   }
+
   getValue(): string {
-    return this.valueElement.textContent || "";
+    return this.valueElement.textContent ?? "";
   }
+
   validate(): boolean {
-    const value = this.valueElement.textContent || "";
-    const error = validateLength(value, this.minLength, this.maxLength);
+    const value = this.valueElement.textContent ?? "";
+    const error =
+      validateLength(value, this.minLength, this.maxLength) ??
+      validateTextType(value, this.type);
     this.errorElement.textContent = error ?? "";
     return !error;
   }
@@ -76,12 +83,14 @@ export class EditableValueFieldInstance extends FieldInstance<string> {
   private createInputElement() {
     const input = document.createElement("input");
     input.classList.add("item-option-value-input");
-    input.value = this.valueElement.textContent || "";
+    input.value = this.valueElement.textContent ?? "";
 
     input.addEventListener("blur", () => {
       const value = input.value;
 
-      const error = validateLength(value, this.minLength, this.maxLength);
+      const error =
+        validateLength(value, this.minLength, this.maxLength) ??
+        validateTextType(value, this.type);
       if (error) {
         this.errorElement.textContent = error;
         input.focus();

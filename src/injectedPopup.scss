@@ -5,6 +5,7 @@ $fa-font-path: "../node_modules/@fortawesome/fontawesome-free/webfonts";
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap");
 @import "./colors.scss";
 @import "./reset.scss";
+@import "src/components/mixins.scss";
 
 .popup-root {
   @include color-theme;
@@ -33,6 +34,7 @@ $fa-font-path: "../node_modules/@fortawesome/fontawesome-free/webfonts";
     pointer-events: auto;
     display: flex;
     flex-direction: column;
+    max-width: 80ch;
   }
 
   .popup-header {
@@ -81,15 +83,8 @@ $fa-font-path: "../node_modules/@fortawesome/fontawesome-free/webfonts";
   }
 
   .back-button {
-    cursor: pointer;
-    background: var(--button-color);
-    color: var(--text-color);
-    border: 3px solid var(--primary-border-color);
-    border-radius: 1em;
-    padding: 0.5em 1em;
     margin: 0.5em;
     text-transform: uppercase;
-    height: auto;
     font-size: 0.8em;
 
     &:hover {
@@ -98,10 +93,9 @@ $fa-font-path: "../node_modules/@fortawesome/fontawesome-free/webfonts";
   }
 
   input {
+    @include has-border(input);
     background: white;
     color: black;
-    border: 1px solid var(--primary-border-color);
     padding: 0.25em;
-    border-radius: 0.25em;
   }
 }

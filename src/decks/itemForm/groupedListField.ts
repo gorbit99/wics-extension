@@ -1,4 +1,3 @@
-import { FieldValue } from "../../wanikani";
 import { createErrorElement } from "./error";
 import {
   FieldGroupInstance,
@@ -8,7 +7,7 @@ import {
 } from "./fields";
 
 export class GroupedListFieldRenderer<
-  RowValue extends Record<string, FieldValue>
+  RowValue extends Record<string, any>
 > extends FieldRenderer<RowValue[]> {
   constructor(
     name: string,
@@ -32,7 +31,7 @@ export class GroupedListFieldRenderer<
     container.append(label);
 
     const newButton = document.createElement("button");
-    newButton.classList.add("item-form-group-list-new-button");
+    newButton.classList.add("button", "item-form-group-list-new-button");
     const fontAwesomeIcon = document.createElement("i");
     fontAwesomeIcon.classList.add(
       "fa",
@@ -75,7 +74,7 @@ export class GroupedListFieldRenderer<
 }
 
 export class GroupedListFieldInstance<
-  RowValue extends Record<string, FieldValue>
+  RowValue extends Record<string, any>
 > extends FieldInstance<RowValue[]> {
   private instances: FieldGroupInstance<RowValue>[] = [];
 

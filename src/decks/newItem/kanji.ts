@@ -1,8 +1,13 @@
 import { StorageHandler } from "../../storageHandler";
-import { FieldValue, WKKanjiItem } from "../../wanikani";
+import {
+  AuxiliaryMeaning,
+  AuxiliaryReading,
+  WKKanjiItem,
+} from "../../wanikani";
 import { EditableMultilineFieldRenderer } from "../itemForm/editableMultiline";
 import { EditableValueFieldRenderer } from "../itemForm/editableValue";
 import { FieldGroupRenderer } from "../itemForm/fields";
+import { GroupedListFieldRenderer } from "../itemForm/groupedListField";
 import { ListFieldRenderer } from "../itemForm/listField";
 import { MultiLineFieldRenderer } from "../itemForm/multilineField";
 import { SelectFieldRenderer } from "../itemForm/selectField";
@@ -20,13 +25,15 @@ type Kanji = {
   meaningHint: string;
   readingMnemonic: string;
   readingHint: string;
+  auxiliaryMeanings: AuxiliaryMeaning[];
+  auxiliaryReadings: AuxiliaryReading[];
 };
 
 const kanjiInputFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
-  characters: new TextFieldRenderer("Kanji", 1, 1),
+  characters: new TextFieldRenderer("Kanji", 1, 1, "japanese"),
   english: new ListFieldRenderer(
     "English",
-    { minLength: 1 },
+    { minLength: 1, type: "latin" },
     1,
     undefined,
     true
@@ -38,21 +45,21 @@ const kanjiInputFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
   }),
   onyomi: new ListFieldRenderer(
     "Onyomi",
-    { minLength: 1 },
+    { minLength: 1, type: "kana" },
     undefined,
     undefined,
     true
   ),
   kunyomi: new ListFieldRenderer(
     "Kunyomi",
-    { minLength: 1 },
+    { minLength: 1, type: "kana" },
     undefined,
     undefined,
     true
   ),
   nanori: new ListFieldRenderer(
     "Nanori",
-    { minLength: 1 },
+    { minLength: 1, type: "kana" },
     undefined,
     undefined,
     true
@@ -67,10 +74,30 @@ const kanjiInputFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
   meaningHint: new MultiLineFieldRenderer("Meaning Hint"),
   readingMnemonic: new MultiLineFieldRenderer("Reading Mnemonic"),
   readingHint: new MultiLineFieldRenderer("Reading Hint"),
+  auxiliaryMeanings: new GroupedListFieldRenderer(
+    "Auxiliary Meanings",
+    new FieldGroupRenderer<AuxiliaryMeaning>({
+      meaning: new TextFieldRenderer("Meaning", 1, undefined, "latin"),
+      type: new SelectFieldRenderer("Type", {
+        whitelist: "Allow",
+        blacklist: "Deny",
+      }),
+    })
+  ),
+  auxiliaryReadings: new GroupedListFieldRenderer(
+    "Auxiliary Readings",
+    new FieldGroupRenderer<AuxiliaryReading>({
+      reading: new TextFieldRenderer("Reading", 1, undefined, "kana"),
+      type: new SelectFieldRenderer("Type", {
+        whitelist: "Allow",
+        blacklist: "Deny",
+      }),
+    })
+  ),
 });
 
 const kanjiViewFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
-  characters: new EditableValueFieldRenderer("Kanji", 1, 1),
+  characters: new EditableValueFieldRenderer("Kanji", 1, 1, "japanese"),
   english: new ListFieldRenderer(
     "English",
     { minLength: 1 },
@@ -85,21 +112,21 @@ const kanjiViewFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
   }),
   onyomi: new ListFieldRenderer(
     "Onyomi",
-    { minLength: 1 },
+    { minLength: 1, type: "kana" },
     undefined,
     undefined,
     true
   ),
   kunyomi: new ListFieldRenderer(
     "Kunyomi",
-    { minLength: 1 },
+    { minLength: 1, type: "kana" },
     undefined,
     undefined,
     true
   ),
   nanori: new ListFieldRenderer(
     "Nanori",
-    { minLength: 1 },
+    { minLength: 1, type: "kana" },
     undefined,
     undefined,
     true
@@ -114,33 +141,50 @@ const kanjiViewFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
   meaningHint: new EditableMultilineFieldRenderer("Meaning Hint"),
   readingMnemonic: new EditableMultilineFieldRenderer("Reading Mnemonic"),
   readingHint: new EditableMultilineFieldRenderer("Reading Hint"),
+  auxiliaryMeanings: new GroupedListFieldRenderer(
+    "Auxiliary Meanings",
+    new FieldGroupRenderer<AuxiliaryMeaning>({
+      meaning: new EditableValueFieldRenderer("Meaning", 1, undefined, "latin"),
+      type: new SelectFieldRenderer("Type", {
+        whitelist: "Allow",
+        blacklist: "Deny",
+      }),
+    })
+  ),
+  auxiliaryReadings: new GroupedListFieldRenderer(
+    "Auxiliary Readings",
+    new FieldGroupRenderer<AuxiliaryReading>({
+      reading: new TextFieldRenderer("Reading", 1, undefined, "kana"),
+      type: new SelectFieldRenderer("Type", {
+        whitelist: "Allow",
+        blacklist: "Deny",
+      }),
+    })
+  ),
 });
 
 export async function convertToKanji(
-  values: Record<string, FieldValue>
+  values: Record<string, any>
 ): Promise<WKKanjiItem> {
+  const kanji = values as Kanji;
   return new WKKanjiItem(
     await StorageHandler.getInstance().getNewId(),
-    values["english"] as [string, ...string[]],
-    values["characters"] as string,
-    values["onyomi"] as string[],
-    values["kunyomi"] as string[],
-    values["vocabulary"] as string[],
-    values["emphasis"] as "onyomi" | "kunyomi" | "nanori",
-    values["meaningMnemonic"] as string,
-    values["meaningHint"] as string,
-    values["readingMnemonic"] as string,
-    values["readingHint"] as string,
-    // TODO: aux meanings, readings, synonyms and relationships
-    [],
-    await StorageHandler.getInstance().radicalsToIds(
-      values["radicals"] as string[]
-    ),
-    await StorageHandler.getInstance().vocabularyToIds(
-      values["vocabulary"] as string[]
-    ),
+    kanji.english as [string, ...string[]],
+    kanji.characters,
+    kanji.onyomi,
+    kanji.kunyomi,
+    kanji.vocabulary,
+    kanji.emphasis,
+    kanji.meaningMnemonic,
+    kanji.meaningHint,
+    kanji.readingMnemonic,
+    kanji.readingHint,
+    // TODO: synonyms, radicals and relationships
     [],
     [],
+    await StorageHandler.getInstance().vocabularyToIds(kanji.vocabulary),
+    kanji.auxiliaryMeanings,
+    kanji.auxiliaryReadings,
     { study_material: null }
   );
 }

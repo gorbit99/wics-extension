@@ -1,3 +1,5 @@
+@import "src/components/mixins.scss";
+
 .decks-list {
   width: 100%;
   margin-top: 0.5em;
@@ -18,16 +20,15 @@
   }
 
   .deck-icon {
+    @include has-border(primary);
+
     margin: auto;
     width: 80%;
     aspect-ratio: 0.8;
     background: var(--container-color);
-    border: 1px solid var(--primary-border-color);
-    border-radius: 0.5em;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.3);
   }
 }
 

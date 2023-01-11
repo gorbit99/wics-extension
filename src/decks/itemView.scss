@@ -41,29 +41,6 @@
 }
 
 .item-view-action-button {
-  background: var(--button-color);
-  color: var(--text-color);
-  border: 3px solid var(--primary-border-color);
-  border-radius: 0.5em;
-  padding: 0.5em;
-  cursor: pointer;
-  font-size: 1em;
-
-  &:hover {
-    background: var(--button-hover-color);
-  }
-
-  &.item-view-delete-button {
-    background: var(--container-color);
-    color: var(--text-color);
-    border-color: var(--delete-color);
-    border-width: 1px;
-
-    &:hover {
-      background: var(--delete-color);
-    }
-  }
-
   &.item-view-save-button {
     display: none;
   }
