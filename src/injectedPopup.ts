@@ -16,6 +16,8 @@ export async function injectPopup(
   const shadowRoot = shadowHost.attachShadow({ mode: "open" });
   shadowHost.classList.add("popup-shadow-host");
 
+  injectFonts(shadowRoot);
+
   const popupRoot = document.createElement("div");
   popupRoot.classList.add("popup-root");
   popupRoot.innerHTML = injectedPopupHtml;
@@ -121,5 +123,3 @@ function handleDragging(popupRoot: HTMLElement) {
     document.addEventListener("mouseup", upListener);
   });
 }
-
-injectFonts();

@@ -2,6 +2,7 @@ import alertHTML from "./alert/alert.html?raw";
 import alertStyle from "./alert/alert.scss?inline";
 
 import browser from "webextension-polyfill";
+import { injectFonts } from "../fonts";
 
 interface AlertConfig {
   title: string;
@@ -21,6 +22,7 @@ export async function createAlert(config: AlertConfig) {
   const shadowContainer = document.createElement("div");
   shadowContainer.classList.add("wics-alert-container");
   const shadowDom = shadowContainer.attachShadow({ mode: "closed" });
+  injectFonts(shadowDom);
 
   shadowDom.innerHTML = alertHTML;
 

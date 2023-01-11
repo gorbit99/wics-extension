@@ -47,10 +47,5 @@
     "src/monkeyPatching/jquery.js",
     "src/monkeyPatching/fetch.js"
   ],
-  "{{chrome}}.permissions": ["storage", "tabs", "scripting", "activeTab"],
-  "{{firefox}}.permissions": ["storage", "tabs", "scripting", "<all_urls>"],
-  "{{chrome}}.externally_connectable": {
-    "matches": ["https://*.wanikani.com/*"]
-  },
-  "{{chrome}}.host_permissions": ["*://*/*"]
+  "permissions": ["storage", "tabs", "scripting", "activeTab"]
 }
