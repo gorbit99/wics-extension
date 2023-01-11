@@ -2,8 +2,13 @@ import { StorageHandler } from "../../storageHandler";
 import {
   AuxiliaryMeaning,
   AuxiliaryReading,
+  Collocation,
+  WKRelationship,
+  WKStudyMaterial,
   WKVocabularyItem,
 } from "../../wanikani";
+import { ComplexFieldRenderer } from "../itemForm/complexField";
+import { ConstantFieldRenderer } from "../itemForm/constantField";
 import { EditableMultilineFieldRenderer } from "../itemForm/editableMultiline";
 import { EditableValueFieldRenderer } from "../itemForm/editableValue";
 import { FieldGroupRenderer } from "../itemForm/fields";
@@ -24,6 +29,8 @@ type Vocabulary = {
   sentences: { english: string; japanese: string }[];
   auxiliaryMeanings: AuxiliaryMeaning[];
   auxiliaryReadings: AuxiliaryReading[];
+  relationships: WKRelationship;
+  collocations: Collocation[];
 };
 
 const vocabularyInputFields: FieldGroupRenderer<Vocabulary> =
@@ -69,6 +76,23 @@ const vocabularyInputFields: FieldGroupRenderer<Vocabulary> =
         }),
       })
     ),
+    collocations: new GroupedListFieldRenderer(
+      "Collocations",
+      new FieldGroupRenderer<Collocation>({
+        english: new TextFieldRenderer("English", 1, undefined, "latin"),
+        japanese: new TextFieldRenderer("Japanese", 1, undefined, "japanese"),
+        pattern_of_use: new TextFieldRenderer("Pattern of Use", 1),
+      }),
+      true
+    ),
+    relationships: new ConstantFieldRenderer<WKRelationship>({
+      study_material: {
+        id: 0,
+        meaning_note: "",
+        reading_note: "",
+        meaning_synonyms: [],
+      },
+    }),
   });
 
 const vocabularyViewFields: FieldGroupRenderer<Vocabulary> =
@@ -124,13 +148,48 @@ const vocabularyViewFields: FieldGroupRenderer<Vocabulary> =
         }),
       })
     ),
+    collocations: new GroupedListFieldRenderer(
+      "Collocations",
+      new FieldGroupRenderer<Collocation>({
+        english: new EditableValueFieldRenderer(
+          "English",
+          1,
+          undefined,
+          "latin"
+        ),
+        japanese: new EditableValueFieldRenderer(
+          "Japanese",
+          1,
+          undefined,
+          "japanese"
+        ),
+        pattern_of_use: new EditableValueFieldRenderer("Pattern of Use", 1),
+      }),
+      true
+    ),
+    relationships: new ComplexFieldRenderer<WKRelationship>(
+      new FieldGroupRenderer<Required<WKRelationship>>({
+        study_material: new ComplexFieldRenderer(
+          new FieldGroupRenderer<WKStudyMaterial>({
+            id: new ConstantFieldRenderer<number>(0),
+            meaning_note: new EditableValueFieldRenderer("Meaning Note", 0),
+            reading_note: new EditableValueFieldRenderer("Reading Note", 0),
+            meaning_synonyms: new ListFieldRenderer(
+              "Meaning Synonyms",
+              { minLength: 1, type: "latin" },
+              0
+            ),
+          })
+        ),
+      })
+    ),
   });
 
 export async function convertToVocabulary(
   values: Record<string, unknown>
 ): Promise<WKVocabularyItem> {
   const vocab = values as Vocabulary;
-  // TODO: collocations, synonyms and relationships
+  // TODO: audio
   return new WKVocabularyItem(
     await StorageHandler.getInstance().getNewId(),
     vocab.english as [string, ...string[]],
@@ -141,12 +200,11 @@ export async function convertToVocabulary(
     vocab.readingMnemonic,
     await StorageHandler.getInstance().kanjiToIds(vocab.kanji),
     vocab.sentences,
-    [],
-    vocab["partsOfSpeech"],
+    vocab.collocations,
+    vocab.partsOfSpeech,
     vocab.auxiliaryMeanings,
     vocab.auxiliaryReadings,
-    { study_material: null },
-    []
+    vocab.relationships
   );
 }
 

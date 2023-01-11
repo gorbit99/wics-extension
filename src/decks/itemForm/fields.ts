@@ -38,9 +38,9 @@ export class FieldGroupInstance<T extends Record<string, any>> {
   private onChangeListeners: OnChangeCallback<T, keyof T>[] = [];
 
   getHTML(): [HTMLElement] {
-    return Object.values(this.fields).map((field) => field.getHTML()) as [
-      HTMLElement
-    ];
+    return Object.values(this.fields)
+      .flatMap((field) => field.getHTML())
+      .filter((element) => element) as [HTMLElement];
   }
 
   getValue(): T {
@@ -75,7 +75,7 @@ export abstract class FieldInstance<Type> {
 
   private onChangeListeners: ((value: Type) => void | Promise<void>)[] = [];
 
-  abstract getHTML(): HTMLElement;
+  abstract getHTML(): HTMLElement | HTMLElement[] | undefined;
   abstract getValue(): Type;
   abstract validate(): boolean;
 

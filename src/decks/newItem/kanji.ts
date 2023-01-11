@@ -3,7 +3,11 @@ import {
   AuxiliaryMeaning,
   AuxiliaryReading,
   WKKanjiItem,
+  WKRelationship,
+  WKStudyMaterial,
 } from "../../wanikani";
+import { ComplexFieldRenderer } from "../itemForm/complexField";
+import { ConstantFieldRenderer } from "../itemForm/constantField";
 import { EditableMultilineFieldRenderer } from "../itemForm/editableMultiline";
 import { EditableValueFieldRenderer } from "../itemForm/editableValue";
 import { FieldGroupRenderer } from "../itemForm/fields";
@@ -27,6 +31,7 @@ type Kanji = {
   readingHint: string;
   auxiliaryMeanings: AuxiliaryMeaning[];
   auxiliaryReadings: AuxiliaryReading[];
+  relationships: WKRelationship;
 };
 
 const kanjiInputFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
@@ -94,6 +99,14 @@ const kanjiInputFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
       }),
     })
   ),
+  relationships: new ConstantFieldRenderer<WKRelationship>({
+    study_material: {
+      id: 0,
+      meaning_note: "",
+      reading_note: "",
+      meaning_synonyms: [],
+    },
+  }),
 });
 
 const kanjiViewFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
@@ -161,6 +174,22 @@ const kanjiViewFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
       }),
     })
   ),
+  relationships: new ComplexFieldRenderer<WKRelationship>(
+    new FieldGroupRenderer<Required<WKRelationship>>({
+      study_material: new ComplexFieldRenderer(
+        new FieldGroupRenderer<WKStudyMaterial>({
+          id: new ConstantFieldRenderer<number>(0),
+          meaning_note: new EditableValueFieldRenderer("Meaning Note", 0),
+          reading_note: new EditableValueFieldRenderer("Reading Note", 0),
+          meaning_synonyms: new ListFieldRenderer(
+            "Meaning Synonyms",
+            { minLength: 1, type: "latin" },
+            0
+          ),
+        })
+      ),
+    })
+  ),
 });
 
 export async function convertToKanji(
@@ -179,13 +208,12 @@ export async function convertToKanji(
     kanji.meaningHint,
     kanji.readingMnemonic,
     kanji.readingHint,
-    // TODO: synonyms, radicals and relationships
-    [],
+    // TODO: radicals
     [],
     await StorageHandler.getInstance().vocabularyToIds(kanji.vocabulary),
     kanji.auxiliaryMeanings,
     kanji.auxiliaryReadings,
-    { study_material: null }
+    kanji.relationships
   );
 }
 

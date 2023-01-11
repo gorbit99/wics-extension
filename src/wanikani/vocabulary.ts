@@ -1,6 +1,6 @@
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, AuxiliaryReading, WKRelationship } from "./common";
-import { FieldValue, WKItem } from "./item";
+import { WKItem } from "./item";
 import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
 import { WKKanjiItem, WKKanjiVocabulary } from "./kanji";
 import { WKSrsData } from "./srsData";
@@ -20,8 +20,7 @@ export class WKVocabularyItem extends WKItem {
     private partsOfSpeech: string[],
     auxiliaryMeanings: AuxiliaryMeaning[],
     private auxiliaryReadings: AuxiliaryReading[],
-    relationships: WKRelationship,
-    synonyms: string[]
+    relationships: WKRelationship
   ) {
     super(
       id,
@@ -29,7 +28,6 @@ export class WKVocabularyItem extends WKItem {
       english,
       characters,
       relationships,
-      synonyms,
       auxiliaryMeanings,
       meaningMnemonic
     );
@@ -49,7 +47,7 @@ export class WKVocabularyItem extends WKItem {
       auxiliary_meanings: this.auxiliaryMeanings,
       auxiliary_readings: this.auxiliaryReadings,
       srs: this.srs.getStage(),
-      syn: this.synonyms,
+      syn: this.relationships.study_material?.meaning_synonyms ?? [],
     };
   }
 
@@ -125,7 +123,7 @@ export class WKVocabularyItem extends WKItem {
     WKSrsData.hydrate(vocabulary.srs);
   }
 
-  getValue(id: string): FieldValue {
+  getValue(id: string): any {
     switch (id) {
       case "audio":
         return this.audio;
@@ -148,7 +146,7 @@ export class WKVocabularyItem extends WKItem {
     }
   }
 
-  setValue(id: string, value: FieldValue): void {
+  setValue(id: string, value: any): void {
     switch (id) {
       case "audio":
         this.audio = value as Audio[];

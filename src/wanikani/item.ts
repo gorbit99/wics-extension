@@ -1,7 +1,6 @@
-import { AuxiliaryMeaning, AuxiliaryReading, WKRelationship } from "./common";
+import { AuxiliaryMeaning, WKRelationship } from "./common";
 import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
 import { WKSrsData } from "./srsData";
-import { Audio, Collocation } from "./vocabulary";
 
 export abstract class WKItem {
   protected srs: WKSrsData;
@@ -12,7 +11,6 @@ export abstract class WKItem {
     protected english: [string, ...string[]],
     protected characters: string,
     protected relationships: WKRelationship,
-    protected synonyms: string[],
     protected auxiliaryMeanings: AuxiliaryMeaning[],
     protected meaningMnemonic: string
   ) {
@@ -21,7 +19,6 @@ export abstract class WKItem {
     this.english = english;
     this.characters = characters;
     this.relationships = relationships;
-    this.synonyms = synonyms;
     this.auxiliaryMeanings = auxiliaryMeanings;
 
     this.srs = new WKSrsData();
@@ -73,7 +70,7 @@ export abstract class WKItem {
     }
   }
 
-  getValue(id: string): FieldValue {
+  getValue(id: string): any {
     switch (id) {
       case "id":
         return this.id;
@@ -85,8 +82,6 @@ export abstract class WKItem {
         return this.characters;
       case "relationships":
         return this.relationships;
-      case "synonyms":
-        return this.synonyms;
       case "auxiliaryMeanings":
         return this.auxiliaryMeanings;
       case "meaningMnemonic":
@@ -98,7 +93,7 @@ export abstract class WKItem {
     }
   }
 
-  setValue(id: string, value: FieldValue) {
+  setValue(id: string, value: any) {
     switch (id) {
       case "english":
         this.english = value as [string, ...string[]];
@@ -108,9 +103,6 @@ export abstract class WKItem {
         break;
       case "relationships":
         this.relationships = value as WKRelationship;
-        break;
-      case "synonyms":
-        this.synonyms = value as string[];
         break;
       case "auxiliaryMeanings":
         this.auxiliaryMeanings = value as AuxiliaryMeaning[];
@@ -127,16 +119,3 @@ export abstract class WKItem {
     this.srs.review(0);
   }
 }
-
-export type FieldValue =
-  | string
-  | string[]
-  | number
-  | number[]
-  | AuxiliaryMeaning[]
-  | AuxiliaryReading[]
-  | WKRelationship
-  | { english: string; japanese: string }[]
-  | Audio[]
-  | Collocation[]
-  | null;

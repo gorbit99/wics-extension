@@ -1,10 +1,12 @@
 export interface WKRelationship {
-  study_material: {
-    id: number;
-    meaning_note: string;
-    reading_note: string;
-    meaning_synonyms: string[];
-  } | null;
+  study_material: WKStudyMaterial;
+}
+
+export interface WKStudyMaterial {
+  id: number;
+  meaning_note: string;
+  reading_note: string;
+  meaning_synonyms: string[];
 }
 
 export interface AuxiliaryMeaning {

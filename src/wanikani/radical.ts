@@ -1,6 +1,6 @@
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, WKRelationship } from "./common";
-import { FieldValue, WKItem } from "./item";
+import { WKItem } from "./item";
 import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
 import { WKKanjiItem, WKKanjiRadical } from "./kanji";
 import { WKSrsData } from "./srsData";
@@ -11,7 +11,6 @@ export class WKRadicalItem extends WKItem {
     english: [string, ...string[]],
     characters: string,
     auxiliaryMeanings: AuxiliaryMeaning[],
-    synonyms: string[],
     relationships: WKRelationship,
     meaningMnemonic: string,
     private characterImageUrl: string | null,
@@ -23,7 +22,6 @@ export class WKRadicalItem extends WKItem {
       english,
       characters,
       relationships,
-      synonyms,
       auxiliaryMeanings,
       meaningMnemonic
     );
@@ -39,7 +37,7 @@ export class WKRadicalItem extends WKItem {
       characters: this.characters,
       auxiliary_meanings: this.auxiliaryMeanings,
       character_image_url: this.characterImageUrl,
-      syn: this.synonyms,
+      syn: this.relationships.study_material?.meaning_synonyms ?? [],
       srs: this.srs.getStage(),
     };
   }
@@ -97,7 +95,7 @@ export class WKRadicalItem extends WKItem {
     WKSrsData.hydrate(radical.srs);
   }
 
-  getValue(id: string): FieldValue {
+  getValue(id: string): any {
     switch (id) {
       case "type":
         return "Radical";
@@ -112,7 +110,7 @@ export class WKRadicalItem extends WKItem {
     }
   }
 
-  setValue(id: string, value: FieldValue) {
+  setValue(id: string, value: any) {
     switch (id) {
       case "characters":
         this.characters = value as string;

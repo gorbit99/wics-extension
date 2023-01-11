@@ -1,7 +1,7 @@
 import { WKSrsData } from ".";
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, AuxiliaryReading, WKRelationship } from "./common";
-import { FieldValue, WKItem } from "./item";
+import { WKItem } from "./item";
 import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
 import { WKRadicalItem, WKRadicalKanji } from "./radical";
 import { WKVocabularyItem, WKVocabularyKanji } from "./vocabulary";
@@ -19,7 +19,6 @@ export class WKKanjiItem extends WKItem {
     private meaningHint: string,
     private readingMnemonic: string,
     private readingHint: string,
-    synonyms: string[],
     private radicals: number[],
     private vocabulary: number[],
     auxiliaryMeanings: AuxiliaryMeaning[],
@@ -32,7 +31,6 @@ export class WKKanjiItem extends WKItem {
       english,
       characters,
       relationships,
-      synonyms,
       auxiliaryMeanings,
       meaningMnemonic
     );
@@ -53,7 +51,7 @@ export class WKKanjiItem extends WKItem {
       emph: this.emphasis,
       auxiliary_meanings: this.auxiliaryMeanings,
       auxiliary_readings: this.auxiliaryReadings,
-      syn: this.synonyms,
+      syn: this.relationships.study_material?.meaning_synonyms ?? [],
     };
   }
 
@@ -145,7 +143,7 @@ export class WKKanjiItem extends WKItem {
     WKSrsData.hydrate(kanji.srs);
   }
 
-  getValue(id: string): FieldValue {
+  getValue(id: string): any {
     switch (id) {
       case "onyomi":
         return this.onyomi;
@@ -172,7 +170,7 @@ export class WKKanjiItem extends WKItem {
     }
   }
 
-  setValue(id: string, value: FieldValue) {
+  setValue(id: string, value: any) {
     switch (id) {
       case "onyomi":
         this.onyomi = value as string[];

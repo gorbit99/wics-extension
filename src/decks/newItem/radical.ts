@@ -1,5 +1,12 @@
 import { StorageHandler } from "../../storageHandler";
-import { AuxiliaryMeaning, WKRadicalItem } from "../../wanikani";
+import {
+  AuxiliaryMeaning,
+  WKRadicalItem,
+  WKRelationship,
+  WKStudyMaterial,
+} from "../../wanikani";
+import { ComplexFieldRenderer } from "../itemForm/complexField";
+import { ConstantFieldRenderer } from "../itemForm/constantField";
 import { EditableMultilineFieldRenderer } from "../itemForm/editableMultiline";
 import { EditableValueFieldRenderer } from "../itemForm/editableValue";
 import { FieldGroupRenderer } from "../itemForm/fields";
@@ -15,6 +22,7 @@ type Radical = {
   kanji: string[];
   meaningMnemonic: string;
   auxiliaryMeanings: AuxiliaryMeaning[];
+  relationships: WKRelationship;
 };
 
 const radicalInputFields: FieldGroupRenderer<Radical> = new FieldGroupRenderer({
@@ -38,6 +46,14 @@ const radicalInputFields: FieldGroupRenderer<Radical> = new FieldGroupRenderer({
       }),
     })
   ),
+  relationships: new ConstantFieldRenderer<WKRelationship>({
+    study_material: {
+      id: 0,
+      meaning_note: "",
+      reading_note: "",
+      meaning_synonyms: [],
+    },
+  }),
 });
 
 const radicalViewFields: FieldGroupRenderer<Radical> = new FieldGroupRenderer({
@@ -61,6 +77,22 @@ const radicalViewFields: FieldGroupRenderer<Radical> = new FieldGroupRenderer({
       }),
     })
   ),
+  relationships: new ComplexFieldRenderer<WKRelationship>(
+    new FieldGroupRenderer<Required<WKRelationship>>({
+      study_material: new ComplexFieldRenderer(
+        new FieldGroupRenderer<WKStudyMaterial>({
+          id: new ConstantFieldRenderer<number>(0),
+          meaning_note: new EditableValueFieldRenderer("Meaning Note", 0),
+          reading_note: new EditableValueFieldRenderer("Reading Note", 0),
+          meaning_synonyms: new ListFieldRenderer(
+            "Meaning Synonyms",
+            { minLength: 1, type: "latin" },
+            0
+          ),
+        })
+      ),
+    })
+  ),
 });
 
 export async function convertToRadical(
@@ -68,14 +100,13 @@ export async function convertToRadical(
 ): Promise<WKRadicalItem> {
   const radical = values as Radical;
 
+  // TODO: image radicals
   return new WKRadicalItem(
     await StorageHandler.getInstance().getNewId(),
     radical.english as [string, ...string[]],
     radical.characters,
-    // TODO: synonyms and relationships
     radical.auxiliaryMeanings,
-    [],
-    { study_material: null },
+    radical.relationships,
     radical.meaningMnemonic,
     "",
     await StorageHandler.getInstance().kanjiToIds(radical.kanji)
