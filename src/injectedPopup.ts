@@ -2,6 +2,7 @@ import { closeAllAlerts } from "./components/alert";
 import injectedPopupHtml from "./injectedPopup.html?raw";
 import injectedPopupStyle from "./injectedPopup.scss?inline";
 import browser from "webextension-polyfill";
+import { injectFonts } from "./fonts";
 
 export async function injectPopup(
   style: string,
@@ -120,3 +121,5 @@ function handleDragging(popupRoot: HTMLElement) {
     document.addEventListener("mouseup", upListener);
   });
 }
+
+injectFonts();

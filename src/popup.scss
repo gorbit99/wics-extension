@@ -3,6 +3,10 @@
 @import "./colors.scss";
 @import "src/components/mixins.scss";
 
+:root {
+  font-size: 16px;
+}
+
 html {
   background: var(--container-color);
   border-radius: 5px;
@@ -34,7 +38,7 @@ h1 {
   margin-bottom: 1.5rem;
   padding: 0.5rem;
   position: relative;
-  gap: 0.5em;
+  gap: 0.5rem;
   display: flex;
   flex-direction: column;
 
@@ -46,9 +50,9 @@ h1 {
     color: var(--secondary-title-color);
     position: absolute;
     text-transform: uppercase;
-    top: -0.75em;
+    top: -0.75rem;
     background: var(--container-color);
-    padding: 0 0.5em;
+    padding: 0 0.5rem;
     font-size: 1rem;
     cursor: default;
   }
@@ -56,7 +60,7 @@ h1 {
 
 button {
   width: 100%;
-  font-size: 1.2em;
+  font-size: 1rem;
   text-transform: uppercase;
 }
 
