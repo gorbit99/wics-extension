@@ -7,6 +7,12 @@ const helpText = {
     "Where the reviews get placed in the queue. Back places the reviews at " +
     "the end. Front causes them to appear first. Random means the reviews are " +
     "placed at random positions in the queue.",
+  resetApiKey:
+    "Removes the API key you've set up when you first used the extension. " +
+    "This will cause you to have to re-enter your API key when you next " +
+    "open the decks panel.",
+  removeAllDecks:
+    "Removes all of the decks from your setup, including the items within.",
 };
 
 export function setupHelpElements(optionsRoot: HTMLElement) {

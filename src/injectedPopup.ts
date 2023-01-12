@@ -7,7 +7,10 @@ import { injectFonts } from "./fonts";
 export async function injectPopup(
   style: string,
   title: string,
-  onReady: (popupRoot: HTMLElement) => Promise<void>
+  onReady: (
+    popupRoot: HTMLElement,
+    startProgress: (promise: Promise<unknown>, title: string) => void
+  ) => Promise<void>
 ) {
   closeAllAlerts();
   closeAllPopups();
@@ -43,7 +46,9 @@ export async function injectPopup(
 
   await handleDarkModeSwitch(popupRoot);
 
-  await onReady(popupRoot);
+  await onReady(popupRoot, (promise: Promise<unknown>, title: string) =>
+    startProgressDisplay(popupRoot, promise, title)
+  );
 
   document.documentElement.append(shadowHost);
   handleDragging(popupRoot);
@@ -70,7 +75,7 @@ browser.runtime.onMessage.addListener((request: DarkmodeRequest) => {
 export async function handleDarkModeSwitch(
   element?: HTMLElement
 ): Promise<void> {
-  const darkMode = (await browser.storage.local.get()).darkMode;
+  const darkMode = (await browser.storage.local.get("darkMode")).darkMode;
   if (!element) {
     const roots = [...document.querySelectorAll(".popup-shadow-host")].map(
       (host) => host.shadowRoot?.querySelector(".popup-root")!
@@ -100,17 +105,23 @@ function handleDragging(popupRoot: HTMLElement) {
       const newX = event.clientX - offsetX;
       const newY = event.clientY - offsetY;
 
-      const confinedX = Math.min(
-        Math.max(newX, 0),
-        window.innerWidth - popupContainerRect.width
-      );
-      const confinedY = Math.min(
-        Math.max(newY, 0),
-        window.innerHeight - popupContainerRect.height
-      );
+      const confinedX =
+        (Math.min(
+          Math.max(newX, 0),
+          window.innerWidth - popupContainerRect.width
+        ) /
+          window.innerWidth) *
+        100;
+      const confinedY =
+        (Math.min(
+          Math.max(newY, 0),
+          window.innerHeight - popupContainerRect.height
+        ) /
+          window.innerHeight) *
+        100;
 
-      popupContainer.style.left = `${confinedX}px`;
-      popupContainer.style.top = `${confinedY}px`;
+      popupContainer.style.left = `${confinedX}%`;
+      popupContainer.style.top = `${confinedY}%`;
       popupContainer.style.transform = "none";
     };
 
@@ -122,4 +133,20 @@ function handleDragging(popupRoot: HTMLElement) {
     document.addEventListener("mousemove", moveListener);
     document.addEventListener("mouseup", upListener);
   });
+}
+
+function startProgressDisplay(
+  popupRoot: HTMLElement,
+  promise: Promise<unknown>,
+  title: string
+) {
+  const progress = popupRoot.querySelector(".popup-progress") as HTMLElement;
+  progress.classList.add("active");
+
+  const progressTitle = popupRoot.querySelector(
+    ".popup-progress-text"
+  ) as HTMLElement;
+  progressTitle.innerText = title;
+
+  promise.finally(() => progress.classList.remove("active"));
 }

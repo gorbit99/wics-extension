@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill";
 
-browser.storage.local.get().then((result) => {
+browser.storage.local.get("darkMode").then((result) => {
   if (result.darkMode === false) {
     document.documentElement.classList.remove("dark");
   }

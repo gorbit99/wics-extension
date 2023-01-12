@@ -26,7 +26,10 @@ export class EditableValueFieldRenderer extends FieldRenderer<string> {
 
     const valueElement = document.createElement("span");
     valueElement.classList.add("item-option-value", "editable");
-    valueElement.textContent = value ?? "";
+    const textElement = document.createElement("span");
+    textElement.classList.add("item-option-value-text");
+    textElement.textContent = value ?? "";
+    valueElement.append(textElement);
 
     const errorElement = createErrorElement();
 

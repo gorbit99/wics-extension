@@ -94,8 +94,19 @@ export class WKVocabularyItem extends WKItem {
       ]),
       reading_note: this.relationships.study_material?.reading_note ?? null,
       parts_of_speech: this.partsOfSpeech,
-      // TODO: audio, related
-      audio: [],
+      // TODO: related
+      audio: this.audio.map((audio) => ({
+        url: audio.url,
+        content_type: audio.content_type,
+        metadata: {
+          pronunciation: audio.pronunciation,
+          voice_actor_id: audio.voice_actor_id,
+          voice_actor_name: "Custom",
+          gender: "male",
+          voice_description: "Custom",
+          source_id: 0,
+        },
+      })),
       related: [],
     };
   }

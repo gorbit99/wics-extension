@@ -4,33 +4,63 @@
 </div>
 <div class="options-tab-container">
   <div class="options-tab-content" data-tab="behaviour">
-    <div class="options-input-group">
-      <label class="options-input-label" for="lessonPlacementOption"
-        >Custom Lesson Placement
-        <i
-          class="fa-solid fa-question-circle options-input-help"
-          data-help="lessonPlacement"
-        ></i>
-      </label>
-      <select class="options-input options-select" id="lessonPlacementOption">
-        <option value="front">Front</option>
-        <option value="back">Back</option>
-        <option value="random">Random</option>
-      </select>
+    <div class="options-regular-zone">
+      <div class="options-input-group">
+        <label class="options-input-label" for="lessonPlacementOption"
+          >Custom Lesson Placement
+          <i
+            class="fa-solid fa-question-circle options-input-help"
+            data-help="lessonPlacement"
+          ></i>
+        </label>
+        <select class="options-input options-select" id="lessonPlacementOption">
+          <option value="front">Front</option>
+          <option value="back">Back</option>
+          <option value="random">Random</option>
+        </select>
+      </div>
+      <div class="options-input-group">
+        <label class="options-input-label" for="reviewPlacementOption"
+          >Custom Review Placement
+          <i
+            class="fa-solid fa-question-circle options-input-help"
+            data-help="reviewPlacement"
+          ></i>
+        </label>
+        <select class="options-input options-select" id="reviewPlacementOption">
+          <option value="front">Front</option>
+          <option value="back">Back</option>
+          <option value="random">Random</option>
+        </select>
+      </div>
     </div>
-    <div class="options-input-group">
-      <label class="options-input-label" for="reviewPlacementOption"
-        >Custom Review Placement
-        <i
-          class="fa-solid fa-question-circle options-input-help"
-          data-help="reviewPlacement"
-        ></i>
-      </label>
-      <select class="options-input options-select" id="reviewPlacementOption">
-        <option value="front">Front</option>
-        <option value="back">Back</option>
-        <option value="random">Random</option>
-      </select>
+    <div class="options-danger-zone">
+      <span class="options-danger-zone-title">Danger Zone</span>
+      <p class="options-danger-zone-description">
+        These options have irreversible effects, use them with caution!
+      </p>
+      <div class="options-input-group">
+        <label class="options-input-label" for="resetApiKey"
+          >Reset WaniKani API Key
+          <i
+            class="fa-solid fa-question-circle options-input-help"
+            data-help="resetApiKey"
+          ></i>
+        </label>
+        <button class="button button-danger" id="resetApiKey">Reset</button>
+      </div>
+      <div class="options-input-group">
+        <label class="options-input-label" for="removeAllDecks"
+          >Remove all decks
+          <i
+            class="fa-solid fa-question-circle options-input-help"
+            data-help="removeAllDecks"
+          ></i>
+        </label>
+        <button class="button button-danger" id="removeAllDecks">
+          Remove decks
+        </button>
+      </div>
     </div>
   </div>
   <div class="options-tab-content" data-tab="appearance">

@@ -3,6 +3,7 @@ import { StorageHandler } from "../storageHandler";
 import { CustomDeck } from "../storage/customDeck";
 import { renderDeckView } from "./deckView";
 import errors from "./errors";
+import { fetchUser } from "../storage/wkapi/user";
 
 export async function renderDeckList(decksRoot: HTMLElement) {
   const decksContent = decksRoot.querySelector(".popup-content") as HTMLElement;
@@ -97,7 +98,9 @@ async function saveNewDeck(deck: HTMLElement, decksRoot: HTMLElement) {
     return;
   }
 
-  const newDeck = new CustomDeck(inputElement.value);
+  const user = await fetchUser();
+
+  const newDeck = new CustomDeck(inputElement.value, user.username);
   await StorageHandler.getInstance().addNewDeck(newDeck);
 
   const deckNameElement = document.createElement("span");

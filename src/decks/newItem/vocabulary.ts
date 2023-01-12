@@ -18,6 +18,12 @@ import { MultiLineFieldRenderer } from "../itemForm/multilineField";
 import { SelectFieldRenderer } from "../itemForm/selectField";
 import { TextFieldRenderer } from "../itemForm/textField";
 
+interface Audio {
+  url: string;
+  contentType: "audio/mpeg" | "audio/ogg";
+  pronunciation: string;
+}
+
 type Vocabulary = {
   characters: string;
   english: string[];
@@ -31,6 +37,7 @@ type Vocabulary = {
   auxiliaryReadings: AuxiliaryReading[];
   relationships: WKRelationship;
   collocations: Collocation[];
+  audio: Audio[];
 };
 
 const vocabularyInputFields: FieldGroupRenderer<Vocabulary> =
@@ -84,6 +91,22 @@ const vocabularyInputFields: FieldGroupRenderer<Vocabulary> =
         pattern_of_use: new TextFieldRenderer("Pattern of Use", 1),
       }),
       true
+    ),
+    audio: new GroupedListFieldRenderer(
+      "Audio",
+      new FieldGroupRenderer<Audio>({
+        url: new TextFieldRenderer("URL", 1),
+        contentType: new SelectFieldRenderer("Content Type", {
+          "audio/mpeg": "MPEG",
+          "audio/ogg": "OGG",
+        }),
+        pronunciation: new TextFieldRenderer(
+          "Pronunciation",
+          1,
+          undefined,
+          "kana"
+        ),
+      })
     ),
     relationships: new ConstantFieldRenderer<WKRelationship>({
       study_material: {
@@ -167,6 +190,22 @@ const vocabularyViewFields: FieldGroupRenderer<Vocabulary> =
       }),
       true
     ),
+    audio: new GroupedListFieldRenderer(
+      "Audio",
+      new FieldGroupRenderer<Audio>({
+        url: new EditableValueFieldRenderer("URL", 1),
+        contentType: new SelectFieldRenderer("Content Type", {
+          "audio/mpeg": "MPEG",
+          "audio/ogg": "OGG",
+        }),
+        pronunciation: new EditableValueFieldRenderer(
+          "Pronunciation",
+          1,
+          undefined,
+          "kana"
+        ),
+      })
+    ),
     relationships: new ComplexFieldRenderer<WKRelationship>(
       new FieldGroupRenderer<Required<WKRelationship>>({
         study_material: new ComplexFieldRenderer(
@@ -189,12 +228,16 @@ export async function convertToVocabulary(
   values: Record<string, unknown>
 ): Promise<WKVocabularyItem> {
   const vocab = values as Vocabulary;
-  // TODO: audio
   return new WKVocabularyItem(
     await StorageHandler.getInstance().getNewId(),
     vocab.english as [string, ...string[]],
     vocab.characters,
-    [],
+    vocab.audio.map((audio) => ({
+      url: audio.url,
+      content_type: audio.contentType,
+      voice_actor_id: 1,
+      pronunciation: audio.pronunciation,
+    })),
     vocab.kana,
     vocab.meaningMnemonic,
     vocab.readingMnemonic,

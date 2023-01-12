@@ -1,0 +1,38 @@
+<div class="oob-container">
+  <span class="oob-title">Welcome to WICS!</span>
+  <p class="oob-message">
+    It seems you haven't yet set up the Extension yet! In order to get the most
+    out it, you need to provide your WaniKani access token.
+  </p>
+  <p class="oob-message">
+    You can get it by going
+    <a
+      href="https://wanikani.com/settings/personal_access_tokens"
+      target="_blank"
+      >here</a
+    >
+    and copying your API key. The default, read-only should do just fine!
+  </p>
+  <div class="oob-input-wrapper">
+    <div class="oob-input-container">
+      <input
+        type="text"
+        class="oob-api-token-input"
+        placeholder="Paste your API key here"
+      />
+      <button class="oob-submit-button button">Let me in!</button>
+      <div class="loader oob-loader"></div>
+    </div>
+    <span class="oob-input-error"></span>
+  </div>
+  <p class="oob-message">
+    Don't have a WaniKani account? Create one for free by going
+    <a href="https://www.wanikani.com/signup" target="_blank">here</a>! It's
+    completely free!
+  </p>
+
+  <p class="oob-message">
+    Don't worry, I only use your API token to get some item information from
+    WaniKani. It won't affect your progress at all.
+  </p>
+</div>

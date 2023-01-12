@@ -15,6 +15,9 @@
   "{{firefox}}.browser_action": {
     "default_popup": "src/popup.html"
   },
+  "background": {
+    "service_worker": "src/background.ts"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -47,5 +50,11 @@
     "src/monkeyPatching/jquery.js",
     "src/monkeyPatching/fetch.js"
   ],
-  "permissions": ["storage", "tabs", "scripting", "activeTab"]
+  "permissions": [
+    "unlimitedStorage",
+    "storage",
+    "tabs",
+    "scripting",
+    "activeTab"
+  ]
 }

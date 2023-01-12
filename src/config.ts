@@ -9,7 +9,7 @@ const defaultConfig: ConfigData = {
 export class Config {
   private static instance: Config;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): Config {
     if (!Config.instance) {
@@ -19,7 +19,7 @@ export class Config {
   }
 
   async getConfig(): Promise<ConfigData> {
-    const config = (await browser.storage.local.get()).config ?? {};
+    const config = (await browser.storage.local.get("config")).config ?? {};
     const patchedConfig = Object.assign({}, defaultConfig, config);
     return patchedConfig as ConfigData;
   }

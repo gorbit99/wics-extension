@@ -1,11 +1,13 @@
+import { StorageHandler } from "../storageHandler";
 import { BroadSrsLevel, hydrateWKItem } from "../wanikani";
 import { WKItem } from "../wanikani/item";
+import { fetchUser } from "./wkapi/user";
 
 export class CustomDeck {
   private items: WKItem[] = [];
   private description: string = "";
 
-  constructor(private name: string) { }
+  constructor(private name: string, private author: string) { }
 
   getName(): string {
     return this.name;
@@ -23,6 +25,10 @@ export class CustomDeck {
     this.description = description;
   }
 
+  getAuthor(): string {
+    return this.author;
+  }
+
   getItems(): WKItem[] {
     return this.items;
   }
@@ -36,6 +42,15 @@ export class CustomDeck {
     deck.items.forEach((item) => {
       hydrateWKItem(item);
     });
+    if (deck.author === undefined) {
+      this.fixDeckAuthor(deck);
+    }
+  }
+
+  private static async fixDeckAuthor(deck: CustomDeck) {
+    const user = await fetchUser();
+    deck.author = user.username;
+    StorageHandler.getInstance().updateDeck(deck.name, deck);
   }
 
   addItem(item: WKItem) {

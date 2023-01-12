@@ -14,7 +14,7 @@ export function renderDeckView(deck: CustomDeck, decksRoot: HTMLElement) {
 
   (
     decksContent.querySelectorAll(
-      ".deck-view-data-value.editable"
+      ".deck-view-data-value"
     ) as NodeListOf<HTMLElement>
   ).forEach((elem) => {
     setupEditableField(elem, deck);
@@ -112,6 +112,8 @@ function setupEditableField(elem: HTMLElement, deck: CustomDeck) {
     case "description":
       elem.textContent = deck.getDescription();
       break;
+    case "author":
+      elem.textContent = deck.getAuthor();
   }
 
   elem.addEventListener("click", () => {

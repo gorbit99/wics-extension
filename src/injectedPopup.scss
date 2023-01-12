@@ -1,3 +1,4 @@
+@use "src/components/loader.scss";
 @import "./colors.scss";
 @import "./reset.scss";
 @import "src/components/mixins.scss";
@@ -14,83 +15,104 @@
   pointer-events: none;
   z-index: 9999;
   font-size: 16px;
+}
 
-  .popup-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40%;
-    height: 80%;
-    background: var(--container-color);
-    border-radius: 0.5em;
-    box-shadow: 0 0 0.5em var(--shadow-color);
-    overflow: hidden;
-    pointer-events: auto;
-    display: flex;
-    flex-direction: column;
-    max-width: 80ch;
+.popup-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  background: var(--container-color);
+  border-radius: 0.5em;
+  box-shadow: 0 0 0.5em var(--shadow-color);
+  overflow: hidden;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  max-width: 80ch;
+}
+
+.popup-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0.5em 1em;
+  background: var(--container-color);
+  border-bottom: 1px solid var(--container-border-color);
+  box-shadow: 0 0.05em 0.5em var(--shadow-color);
+  cursor: move;
+
+  .popup-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--text-color);
   }
+}
 
-  .popup-header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5em 1em;
-    background: var(--container-color);
-    border-bottom: 1px solid var(--container-border-color);
-    box-shadow: 0 0.05em 0.5em var(--shadow-color);
-    cursor: move;
+.popup-close-button {
+  display: block;
+  width: 2em;
+  aspect-ratio: 1;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: auto;
 
-    .popup-title {
-      font-size: 24px;
-      font-weight: bold;
-      color: var(--text-color);
-    }
-  }
-
-  .popup-close-button {
-    display: block;
-    width: 2em;
-    aspect-ratio: 1;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .popup-close-button::before {
+  &::before {
     font-family: "Font Awesome 6 Free";
     content: "\f00d";
     font-weight: 900;
     font-size: 1.5em;
     color: var(--text-color);
   }
+}
 
-  .popup-content {
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    height: 100%;
+.popup-content {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+.back-button {
+  margin: 0.5em;
+  text-transform: uppercase;
+  font-size: 0.8em;
+
+  &:hover {
+    background: var(--button-hover-color);
+  }
+}
+
+input {
+  @include has-border(input);
+  background: white;
+  color: black;
+  padding: 0.25em;
+}
+
+.popup-progress {
+  display: none;
+  margin-left: 1em;
+  flex-direction: row;
+  gap: 0.5em;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  --loader-size: 1em;
+  --loader-bar-size: 0.2em;
+
+  &.active {
     display: flex;
-    flex-direction: column;
-    align-items: start;
   }
 
-  .back-button {
-    margin: 0.5em;
-    text-transform: uppercase;
-    font-size: 0.8em;
-
-    &:hover {
-      background: var(--button-hover-color);
-    }
-  }
-
-  input {
-    @include has-border(input);
-    background: white;
-    color: black;
-    padding: 0.25em;
+  .popup-progress-text {
+    color: var(--secondary-title-color);
   }
 }

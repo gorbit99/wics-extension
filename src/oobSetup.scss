@@ -1,0 +1,48 @@
+@use "./components/loader.scss";
+
+.oob-container {
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+}
+
+.oob-title {
+  font-size: 2em;
+  color: var(--text-color);
+}
+
+.oob-message {
+  color: var(--text-color);
+  line-height: 1.75em;
+
+  a {
+    color: var(--link-color);
+    text-decoration: none;
+  }
+}
+
+.oob-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: center;
+  gap: 0.5em;
+
+  .oob-input-error {
+    color: var(--error-color);
+  }
+}
+
+.oob-input-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1em;
+  align-items: center;
+  --loader-size: 1em;
+  --loader-bar-size: 0.3em;
+
+  .oob-api-token-input {
+    flex: 1 1 auto;
+  }
+}

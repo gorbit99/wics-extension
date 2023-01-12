@@ -16,7 +16,7 @@ export class StorageHandler {
   }
 
   async getCustomDecks(): Promise<CustomDeck[]> {
-    const database = await browser.storage.local.get();
+    const database = await browser.storage.local.get("customDecks");
     const decks = database.customDecks ?? [];
     decks.forEach((deck: CustomDeck) => {
       CustomDeck.hydrate(deck);

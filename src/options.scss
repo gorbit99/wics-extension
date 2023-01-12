@@ -1,3 +1,4 @@
+@use "src/components/commonComponents.scss";
 @import "src/components/mixins.scss";
 
 .options-tabs {
@@ -100,4 +101,40 @@
   border-radius: 0.5em;
   line-height: 1.7em;
   text-align: justify;
+}
+
+.options-regular-zone {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.options-danger-zone {
+  border: 1px solid var(--error-color);
+  border-radius: 0.5em;
+  padding: 0.5em;
+  box-shadow: 0 0 0.25em var(--shadow-color);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+
+  .options-danger-zone-title {
+    color: var(--error-color);
+    background: var(--container-color);
+    position: absolute;
+    padding: 0.5em;
+    top: -1.25em;
+    left: 2em;
+  }
+
+  .options-danger-zone-description {
+    color: var(--text-color);
+  }
+
+  .button {
+    flex: 1 1 auto;
+  }
 }
