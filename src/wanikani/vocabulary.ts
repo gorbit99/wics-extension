@@ -1,7 +1,13 @@
+import { WKVocabularySubject } from "../storage/wkapi";
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, AuxiliaryReading, WKRelationship } from "./common";
 import { WKItem } from "./item";
-import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
+import {
+  WKExportItem,
+  WKJsonItem,
+  WKLessonItem,
+  WKReviewItem,
+} from "./item/types";
 import { WKKanjiItem, WKKanjiVocabulary } from "./kanji";
 import { WKSrsData } from "./srsData";
 
@@ -94,7 +100,6 @@ export class WKVocabularyItem extends WKItem {
       ]),
       reading_note: this.relationships.study_material?.reading_note ?? null,
       parts_of_speech: this.partsOfSpeech,
-      // TODO: related
       audio: this.audio.map((audio) => ({
         url: audio.url,
         content_type: audio.content_type,
@@ -107,8 +112,55 @@ export class WKVocabularyItem extends WKItem {
           source_id: 0,
         },
       })),
-      related: [],
+      related: (
+        await StorageHandler.getInstance().getAllItemsFromIds(this.kanji)
+      ).map((item) => (item as WKKanjiItem).getVocabKanjiData()),
     };
+  }
+
+  async getExportData(): Promise<WKVocabularyExportItem> {
+    return {
+      ...this.getBaseExportData(),
+      audio: this.audio,
+      kana: this.kana,
+      readingMnemonic: this.readingMnemonic,
+      kanji: (
+        await StorageHandler.getInstance().getAllItemsFromIds(this.kanji)
+      ).map((item) => item.getCharacters()),
+      sentences: this.sentences,
+      collocations: this.collocations,
+      partsOfSpeech: this.partsOfSpeech,
+      auxiliaryReadings: this.auxiliaryReadings,
+    } as WKVocabularyExportItem;
+  }
+
+  static async fromExportData(
+    id: number,
+    data: WKVocabularyExportItem
+  ): Promise<WKVocabularyItem> {
+    return new WKVocabularyItem(
+      id,
+      data.english,
+      data.characters,
+      data.audio,
+      data.kana,
+      data.meaningMnemonic,
+      data.readingMnemonic,
+      await StorageHandler.getInstance().kanjiToIds(data.kanji),
+      data.sentences,
+      data.collocations,
+      data.partsOfSpeech,
+      data.auxiliaryMeanings,
+      data.auxiliaryReadings,
+      {
+        study_material: {
+          meaning_synonyms: [],
+          meaning_note: "",
+          reading_note: "",
+          id: 0,
+        },
+      }
+    );
   }
 
   getKanjiVocabularyData(): WKKanjiVocabulary {
@@ -187,6 +239,47 @@ export class WKVocabularyItem extends WKItem {
         super.setValue(id, value);
     }
   }
+
+  static async fromSubject(
+    subject: WKVocabularySubject
+  ): Promise<WKVocabularyItem> {
+    return new WKVocabularyItem(
+      subject.id,
+      subject.meanings
+        .sort((a, _) => (a.primary ? -1 : 1))
+        .map((meaning) => meaning.meaning) as [string, ...string[]],
+      subject.characters!,
+      subject.pronunciation_audios.map((audio) => ({
+        url: audio.url,
+        content_type: audio.content_type,
+        pronunciation: audio.metadata.pronunciation,
+        voice_actor_id: audio.metadata.voice_actor_id,
+      })),
+      subject.readings
+        .sort((a, _) => (a.primary ? -1 : 1))
+        .map((reading) => reading.reading),
+      subject.meaning_mnemonic,
+      subject.reading_mnemonic,
+      subject.component_subject_ids,
+      subject.context_sentences.map((sentence) => ({
+        english: sentence.en,
+        japanese: sentence.ja,
+      })),
+      // TODO: collocations, relationships, auxiliary_readings
+      [],
+      subject.parts_of_speech,
+      subject.auxiliary_meanings,
+      [],
+      {
+        study_material: {
+          meaning_synonyms: [],
+          meaning_note: "",
+          reading_note: "",
+          id: 0,
+        },
+      }
+    );
+  }
 }
 
 export interface Collocation {
@@ -202,7 +295,7 @@ export interface Audio {
   voice_actor_id: number;
 }
 
-interface WKVocabularyReviewItem extends WKReviewItem {
+export interface WKVocabularyReviewItem extends WKReviewItem {
   aud: Audio[];
   voc: string;
   kana: string[];
@@ -214,7 +307,7 @@ interface WKVocabularyReviewItem extends WKReviewItem {
   syn: string[];
 }
 
-interface WKVocabularyLessonItem extends WKLessonItem {
+export interface WKVocabularyLessonItem extends WKLessonItem {
   voc: string;
   kana: string[];
   aud: Audio[];
@@ -228,7 +321,7 @@ interface WKVocabularyLessonItem extends WKLessonItem {
   auxiliary_readings: AuxiliaryReading[];
 }
 
-interface WKVocabularyJsonItem extends WKJsonItem {
+export interface WKVocabularyJsonItem extends WKJsonItem {
   type: "Vocabulary";
   meaning_explanation: string;
   reading_explanation: string;
@@ -239,6 +332,18 @@ interface WKVocabularyJsonItem extends WKJsonItem {
   parts_of_speech: string[];
   audio: JsonAudio[];
   related: WKVocabularyKanji[];
+}
+
+export interface WKVocabularyExportItem extends WKExportItem {
+  type: "voc";
+  audio: Audio[];
+  kana: string[];
+  readingMnemonic: string;
+  kanji: string[];
+  sentences: { japanese: string; english: string }[];
+  collocations: Collocation[];
+  partsOfSpeech: string[];
+  auxiliaryReadings: AuxiliaryReading[];
 }
 
 interface JsonAudio {

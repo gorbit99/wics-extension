@@ -12,7 +12,7 @@ export class TextFieldRenderer extends FieldRenderer<string> {
     super(name);
   }
 
-  render(value?: string): TextFieldInstance {
+  async render(value?: string): Promise<TextFieldInstance> {
     const optionContainer = document.createElement("div");
     optionContainer.classList.add("item-option-container");
 

@@ -12,22 +12,16 @@ export class ComplexFieldRenderer<
     super("Complex");
   }
 
-  render(value?: Type): FieldInstance<Type> {
-    return new ComplexFieldInstance(this.fieldRenderers, value);
+  async render(value?: Type): Promise<FieldInstance<Type>> {
+    return new ComplexFieldInstance(await this.fieldRenderers.render(value));
   }
 }
 
 export class ComplexFieldInstance<
   Type extends Record<string, any>
 > extends FieldInstance<Type> {
-  private instance: FieldGroupInstance<Type>;
-
-  constructor(
-    fieldRenderers: FieldGroupRenderer<Type>,
-    value?: Type | undefined
-  ) {
+  constructor(private instance: FieldGroupInstance<Type>) {
     super("Complex");
-    this.instance = fieldRenderers.render(value);
     this.instance.onChange(() => this.notifyChange());
   }
 

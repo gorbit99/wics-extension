@@ -1,5 +1,13 @@
 @import "src/components/mixins.scss";
 
+.item-form-option-error {
+  color: var(--error-color);
+  user-select: none;
+  display: block;
+  font-size: 0.8em;
+  text-align: center;
+}
+
 .item-option-container {
   display: flex;
   flex-direction: row;
@@ -44,10 +52,6 @@
 
   .item-button:last-of-type {
     border-radius: 0 0.5em 0.5em 0;
-  }
-
-  .item-button.active {
-    background: var(--button-hover-color);
   }
 }
 
@@ -236,4 +240,40 @@
   .new-item-reorderable & {
     cursor: move;
   }
+}
+
+.item-option-file-drop {
+  border: 1px dashed var(--secondary-border-color);
+  border-radius: 0.5em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  padding: 1em;
+  user-select: none;
+  cursor: pointer;
+  text-align: center;
+
+  &:hover,
+  &.dragover {
+    background: var(--button-hover-color);
+  }
+
+  .item-option-file-drop-icon {
+    font-size: 2em;
+    margin-right: 0.5em;
+  }
+}
+
+.item-form-csv-field-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5em;
+  margin: 0.5em 0;
+}
+
+.item-form-dropdown {
+  flex: 1 1 auto;
 }

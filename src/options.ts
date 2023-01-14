@@ -7,6 +7,7 @@ import optionsStyle from "./options.scss?inline";
 import { setupHelpElements } from "./options/help";
 import { setApiToken } from "./storage/wkapi";
 import { StorageHandler } from "./storageHandler";
+import browser from "webextension-polyfill";
 
 injectPopup(optionsStyle, "Options", async (optionsRoot) => {
   const contentContainer = optionsRoot.querySelector(
@@ -118,6 +119,31 @@ async function initializeOptions(optionsRoot: HTMLElement) {
                 StorageHandler.getInstance().deleteDeck(deck.getName())
               )
             );
+            return true;
+          },
+        },
+      ],
+    });
+  });
+
+  const clearBrowserStorageButton = optionsRoot.querySelector(
+    "#clearBrowserStorage"
+  ) as HTMLButtonElement;
+  clearBrowserStorageButton.addEventListener("click", () => {
+    createAlert({
+      title: "Clear Browser Storage",
+      message: "Are you sure you want to clear your browser storage?",
+      buttons: [
+        {
+          style: "secondary",
+          text: "Cancel",
+          handler: () => true,
+        },
+        {
+          style: "danger",
+          text: "Proceed",
+          handler: async () => {
+            await browser.storage.local.clear();
             return true;
           },
         },

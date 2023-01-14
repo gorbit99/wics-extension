@@ -9,12 +9,18 @@ type FieldGroupInstanceFields<InputObject> = {
 export class FieldGroupRenderer<T extends Record<string, any>> {
   constructor(private fields: FieldGroupRendererFields<T>) { }
 
-  render(value?: T | ((key: keyof T) => T[typeof key])): FieldGroupInstance<T> {
+  async render(
+    value?: T | ((key: keyof T) => T[typeof key] | Promise<T[typeof key]>)
+  ): Promise<FieldGroupInstance<T>> {
     const fields = Object.fromEntries(
-      Object.entries(this.fields).map(([key, field]) => [
-        key,
-        field.render(typeof value == "function" ? value(key) : value?.[key]),
-      ])
+      await Promise.all(
+        Object.entries(this.fields).map(async ([key, field]) => [
+          key,
+          await field.render(
+            typeof value == "function" ? await value(key) : value?.[key]
+          ),
+        ])
+      )
     );
 
     return new FieldGroupInstance<T>(fields as FieldGroupInstanceFields<T>);
@@ -60,6 +66,9 @@ export class FieldGroupInstance<T extends Record<string, any>> {
   }
 
   private notifyChange(id: keyof T, value: T[keyof T]) {
+    Object.values(this.fields).forEach((instance) => {
+      instance.parentChanged(id, value);
+    });
     this.onChangeListeners.forEach((listener) => listener(id, value));
   }
 }
@@ -67,7 +76,7 @@ export class FieldGroupInstance<T extends Record<string, any>> {
 export abstract class FieldRenderer<Type> {
   constructor(protected name: string) { }
 
-  abstract render(value?: Type): FieldInstance<Type>;
+  abstract render(value?: Type): Promise<FieldInstance<Type>>;
 }
 
 export abstract class FieldInstance<Type> {
@@ -86,4 +95,6 @@ export abstract class FieldInstance<Type> {
   protected notifyChange() {
     this.onChangeListeners.forEach((listener) => listener(this.getValue()));
   }
+
+  protected parentChanged(_field: string, _value: any) { }
 }

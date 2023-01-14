@@ -8,7 +8,7 @@ export class SelectFieldRenderer<
     super(name);
   }
 
-  render(value?: Value): SelectFieldInstance<Value> {
+  async render(value?: Value): Promise<SelectFieldInstance<Value>> {
     const optionContainer = document.createElement("div");
     optionContainer.classList.add("item-option-container");
 

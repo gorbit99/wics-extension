@@ -3,14 +3,12 @@ import injectedPopupHtml from "./injectedPopup.html?raw";
 import injectedPopupStyle from "./injectedPopup.scss?inline";
 import browser from "webextension-polyfill";
 import { injectFonts } from "./fonts";
+import { ProgressManager } from "./ProgressManager";
 
 export async function injectPopup(
   style: string,
   title: string,
-  onReady: (
-    popupRoot: HTMLElement,
-    startProgress: (promise: Promise<unknown>, title: string) => void
-  ) => Promise<void>
+  onReady: (popupRoot: HTMLElement) => Promise<void>
 ) {
   closeAllAlerts();
   closeAllPopups();
@@ -46,9 +44,11 @@ export async function injectPopup(
 
   await handleDarkModeSwitch(popupRoot);
 
-  await onReady(popupRoot, (promise: Promise<unknown>, title: string) =>
-    startProgressDisplay(popupRoot, promise, title)
+  ProgressManager.getInstance().setHandler((event, title) =>
+    startProgressDisplay(popupRoot, event, title)
   );
+
+  await onReady(popupRoot);
 
   document.documentElement.append(shadowHost);
   handleDragging(popupRoot);

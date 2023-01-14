@@ -24,7 +24,7 @@ interface Audio {
   pronunciation: string;
 }
 
-type Vocabulary = {
+export type Vocabulary = {
   characters: string;
   english: string[];
   kana: string[];
@@ -42,7 +42,7 @@ type Vocabulary = {
 
 const vocabularyInputFields: FieldGroupRenderer<Vocabulary> =
   new FieldGroupRenderer({
-    characters: new TextFieldRenderer("Characters", 1, 1, "japanese"),
+    characters: new TextFieldRenderer("Characters", 1, undefined, "japanese"),
     english: new ListFieldRenderer(
       "English",
       { minLength: 1, type: "latin" },
@@ -120,7 +120,12 @@ const vocabularyInputFields: FieldGroupRenderer<Vocabulary> =
 
 const vocabularyViewFields: FieldGroupRenderer<Vocabulary> =
   new FieldGroupRenderer({
-    characters: new EditableValueFieldRenderer("Characters", 1, 1, "japanese"),
+    characters: new EditableValueFieldRenderer(
+      "Characters",
+      1,
+      undefined,
+      "japanese"
+    ),
     english: new ListFieldRenderer(
       "English",
       { minLength: 1, type: "latin" },

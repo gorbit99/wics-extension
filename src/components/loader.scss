@@ -9,7 +9,8 @@
   user-events: none;
   display: none;
 
-  &.active {
+  &.active,
+  .active & {
     display: block;
   }
 }

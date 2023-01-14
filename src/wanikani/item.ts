@@ -1,5 +1,11 @@
+import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, WKRelationship } from "./common";
-import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
+import {
+  WKExportItem,
+  WKJsonItem,
+  WKLessonItem,
+  WKReviewItem,
+} from "./item/types";
 import { WKSrsData } from "./srsData";
 
 export abstract class WKItem {
@@ -27,6 +33,21 @@ export abstract class WKItem {
   abstract getReviewData(): Promise<WKReviewItem>;
   abstract getLessonData(): Promise<WKLessonItem>;
   abstract getJsonData(): Promise<WKJsonItem>;
+  abstract getExportData(): Promise<WKExportItem>;
+
+  protected getBaseExportData(): WKExportItem {
+    return {
+      type: {
+        radical: "rad" as const,
+        kanji: "kan" as const,
+        vocabulary: "voc" as const,
+      }[this.type],
+      english: this.english,
+      characters: this.characters,
+      auxiliaryMeanings: this.auxiliaryMeanings,
+      meaningMnemonic: this.meaningMnemonic,
+    };
+  }
 
   isPendingReview(): boolean {
     return this.isReview() && this.srs.isPending();
@@ -64,8 +85,25 @@ export abstract class WKItem {
     return this.srs;
   }
 
-  updateData(data: Record<string, any>): void {
+  async updateData(data: Record<string, any>): Promise<void> {
     for (const key in data) {
+      if (key === "radicals") {
+        const ids = await StorageHandler.getInstance().radicalsToIds(data[key]);
+        this.setValue(key, ids);
+        continue;
+      }
+      if (key === "kanji") {
+        const ids = await StorageHandler.getInstance().kanjiToIds(data[key]);
+        this.setValue(key, ids);
+        continue;
+      }
+      if (key === "vocabulary") {
+        const ids = await StorageHandler.getInstance().vocabularyToIds(
+          data[key]
+        );
+        this.setValue(key, ids);
+        continue;
+      }
       this.setValue(key, data[key]);
     }
   }

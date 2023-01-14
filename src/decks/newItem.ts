@@ -1,3 +1,4 @@
+import { ProgressManager } from "../ProgressManager";
 import { CustomDeck } from "../storage/customDeck";
 import { StorageHandler } from "../storageHandler";
 import { WKItem } from "../wanikani";
@@ -12,7 +13,7 @@ import {
   vocabularyInputFields,
 } from "./newItem/vocabulary";
 
-export function renderNewItem(deck: CustomDeck, decksRoot: HTMLElement) {
+export async function renderNewItem(deck: CustomDeck, decksRoot: HTMLElement) {
   const decksContent = decksRoot.querySelector(".popup-content") as HTMLElement;
   decksContent.innerHTML = newItemHtml;
 
@@ -24,9 +25,9 @@ export function renderNewItem(deck: CustomDeck, decksRoot: HTMLElement) {
     ".new-item-item-options"
   ) as HTMLElement;
 
-  const radicalGroupInstance = radicalInputFields.render();
-  const kanjiGroupInstance = kanjiInputFields.render();
-  const vocabularyGroupInstance = vocabularyInputFields.render();
+  const radicalGroupInstance = await radicalInputFields.render();
+  const kanjiGroupInstance = await kanjiInputFields.render();
+  const vocabularyGroupInstance = await vocabularyInputFields.render();
 
   let [getValue, validate]: [() => Record<string, any>, () => boolean] =
     renderInstance(options, radicalGroupInstance);
@@ -60,7 +61,12 @@ export function renderNewItem(deck: CustomDeck, decksRoot: HTMLElement) {
       if (!validate()) {
         return;
       }
-      const item = await converter(getValue());
+      const promise = converter(getValue());
+      ProgressManager.getInstance().handleProgressEvent(
+        promise,
+        "Saving item..."
+      );
+      const item = await promise;
       deck.addItem(item);
       await StorageHandler.getInstance().updateDeck(deck.getName(), deck);
       renderDeckView(deck, decksRoot);

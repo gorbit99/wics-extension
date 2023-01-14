@@ -1,13 +1,28 @@
 import { StorageHandler } from "../storageHandler";
-import { BroadSrsLevel, hydrateWKItem } from "../wanikani";
+import {
+  BroadSrsLevel,
+  hydrateWKItem,
+  WKKanjiExportItem,
+  WKKanjiItem,
+  WKRadicalExportItem,
+  WKRadicalItem,
+  WKVocabularyExportItem,
+  WKVocabularyItem,
+} from "../wanikani";
 import { WKItem } from "../wanikani/item";
+import { WKExportItem } from "../wanikani/item/types";
 import { fetchUser } from "./wkapi/user";
 
 export class CustomDeck {
   private items: WKItem[] = [];
   private description: string = "";
 
-  constructor(private name: string, private author: string) { }
+  constructor(
+    private name: string,
+    private author: string,
+    private deckId: string = "",
+    private lastUpdated: number = new Date().getTime()
+  ) { }
 
   getName(): string {
     return this.name;
@@ -72,6 +87,7 @@ export class CustomDeck {
       master: 0,
       enlightened: 0,
       burned: 0,
+      locked: 0,
     };
 
     this.items.forEach((item) => {
@@ -84,4 +100,59 @@ export class CustomDeck {
   removeItem(id: number) {
     this.items = this.items.filter((item) => item.getID() !== id);
   }
+
+  async getExportData(): Promise<CustomDeckExportData> {
+    return {
+      exportDate: new Date().getTime(),
+      name: this.name,
+      author: this.author,
+      deckId: `${this.getAuthor()}.${this.getName()}`,
+      description: this.description,
+      items: await Promise.all(
+        this.items.map(async (item) => item.getExportData())
+      ),
+    };
+  }
+
+  static async fromExportData(data: CustomDeckExportData): Promise<CustomDeck> {
+    const deck = new CustomDeck(
+      data.name,
+      data.author,
+      data.deckId,
+      data.exportDate
+    );
+    deck.setDescription(data.description);
+    const nextId = await StorageHandler.getInstance().getNewId();
+    deck.items = await Promise.all(
+      data.items.map(async (item, id) => {
+        switch (item.type) {
+          case "rad":
+            return WKRadicalItem.fromExportData(
+              nextId + id,
+              item as WKRadicalExportItem
+            );
+          case "kan":
+            return WKKanjiItem.fromExportData(
+              nextId + id,
+              item as WKKanjiExportItem
+            );
+          case "voc":
+            return WKVocabularyItem.fromExportData(
+              nextId + id,
+              item as WKVocabularyExportItem
+            );
+        }
+      })
+    );
+    return deck;
+  }
+}
+
+export interface CustomDeckExportData {
+  exportDate: number;
+  name: string;
+  author: string;
+  description: string;
+  deckId: string;
+  items: WKExportItem[];
 }

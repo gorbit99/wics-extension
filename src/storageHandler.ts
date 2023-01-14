@@ -2,6 +2,8 @@ import { CustomDeck } from "./storage/customDeck";
 import browser from "webextension-polyfill";
 import { WKItem } from "./wanikani";
 import { WKJsonItem, WKLessonItem, WKReviewItem } from "./wanikani/item/types";
+import { fetchSubjects } from "./storage/wkapi";
+import { fromSubject } from "./wanikani/fromSubject";
 
 export class StorageHandler {
   private static instance: StorageHandler;
@@ -73,19 +75,70 @@ export class StorageHandler {
       .filter((item) => item !== undefined) as WKItem[];
   }
 
-  async radicalsToIds(_radicals: string[]): Promise<number[]> {
-    // TODO: implement
-    return [];
+  async getAllItemsFromIds(ids: number[]): Promise<WKItem[]> {
+    const wanikaniSubjects = await fetchSubjects(ids);
+
+    const wkItems = await Promise.all(
+      wanikaniSubjects.map((subject) => fromSubject(subject))
+    );
+
+    const customItems = await this.getItemsFromIds(ids);
+
+    return wkItems.concat(customItems);
   }
 
-  async kanjiToIds(_kanji: string[]): Promise<number[]> {
-    // TODO: implement
-    return [];
+  async radicalsToIds(radicals: string[]): Promise<number[]> {
+    const wanikaniIds = (await fetchSubjects())
+      // TODO: handle image radicals
+      .filter(
+        (item) =>
+          item.object === "radical" && radicals.includes(item.characters!)
+      )
+      .map((item) => item.id);
+    const decks = await this.getCustomDecks();
+    const customIds = decks
+      .flatMap((deck) => deck.getItems())
+      .filter(
+        (item) =>
+          item.type === "radical" && radicals.includes(item.getCharacters())
+      )
+      .map((item) => item.getID());
+
+    return wanikaniIds.concat(customIds);
   }
 
-  async vocabularyToIds(_vocabulary: string[]): Promise<number[]> {
-    // TODO: implement
-    return [];
+  async kanjiToIds(kanji: string[]): Promise<number[]> {
+    const wanikaniIds = (await fetchSubjects())
+      .filter((item) => item.object === "kanji" && kanji.includes(item.slug))
+      .map((item) => item.id);
+    const decks = await this.getCustomDecks();
+    const customIds = decks
+      .flatMap((deck) => deck.getItems())
+      .filter(
+        (item) => item.type === "kanji" && kanji.includes(item.getCharacters())
+      )
+      .map((item) => item.getID());
+
+    return wanikaniIds.concat(customIds);
+  }
+
+  async vocabularyToIds(vocabulary: string[]): Promise<number[]> {
+    const wanikaniIds = (await fetchSubjects())
+      .filter(
+        (item) => item.object === "vocabulary" && vocabulary.includes(item.slug)
+      )
+      .map((item) => item.id);
+    const decks = await this.getCustomDecks();
+    const customIds = decks
+      .flatMap((deck) => deck.getItems())
+      .filter(
+        (item) =>
+          item.type === "vocabulary" &&
+          vocabulary.includes(item.getCharacters())
+      )
+      .map((item) => item.getID());
+
+    return wanikaniIds.concat(customIds);
   }
 
   async getDeckByName(name: string): Promise<CustomDeck | undefined> {

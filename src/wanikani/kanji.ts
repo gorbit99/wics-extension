@@ -1,8 +1,14 @@
 import { WKSrsData } from ".";
+import { WKKanjiSubject } from "../storage/wkapi";
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, AuxiliaryReading, WKRelationship } from "./common";
 import { WKItem } from "./item";
-import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
+import {
+  WKExportItem,
+  WKJsonItem,
+  WKLessonItem,
+  WKReviewItem,
+} from "./item/types";
 import { WKRadicalItem, WKRadicalKanji } from "./radical";
 import { WKVocabularyItem, WKVocabularyKanji } from "./vocabulary";
 
@@ -93,9 +99,61 @@ export class WKKanjiItem extends WKItem {
       reading_mnemonic: this.readingMnemonic,
       reading_hint: this.readingHint,
       reading_note: this.relationships.study_material?.reading_note ?? null,
-      // TODO: related
-      related: [],
+      related: (
+        await StorageHandler.getInstance().getAllItemsFromIds(this.radicals)
+      ).map((item) => (item as WKRadicalItem).getKanjiRadicalData()),
     };
+  }
+
+  async getExportData(): Promise<WKKanjiExportItem> {
+    return {
+      ...this.getBaseExportData(),
+      onyomi: this.onyomi,
+      kunyomi: this.kunyomi,
+      nanori: this.nanori,
+      emphasis: this.emphasis,
+      meaningHint: this.meaningHint,
+      readingHint: this.readingHint,
+      readingMnemonic: this.readingMnemonic,
+      radicals: (
+        await StorageHandler.getInstance().getAllItemsFromIds(this.radicals)
+      ).map((item) => item.getCharacters()),
+      vocabulary: (
+        await StorageHandler.getInstance().getAllItemsFromIds(this.vocabulary)
+      ).map((item) => item.getCharacters()),
+      auxiliaryReadings: this.auxiliaryReadings,
+    } as WKKanjiExportItem;
+  }
+
+  static async fromExportData(
+    id: number,
+    data: WKKanjiExportItem
+  ): Promise<WKKanjiItem> {
+    return new WKKanjiItem(
+      id,
+      data.english,
+      data.characters,
+      data.onyomi,
+      data.kunyomi,
+      data.nanori,
+      data.emphasis,
+      data.meaningMnemonic,
+      data.meaningHint,
+      data.readingMnemonic,
+      data.readingHint,
+      await StorageHandler.getInstance().radicalsToIds(data.radicals),
+      await StorageHandler.getInstance().vocabularyToIds(data.vocabulary),
+      data.auxiliaryMeanings,
+      data.auxiliaryReadings,
+      {
+        study_material: {
+          meaning_synonyms: [],
+          meaning_note: "",
+          reading_note: "",
+          id: 0,
+        },
+      }
+    );
   }
 
   getRadicalKanjiData(): WKRadicalKanji {
@@ -206,9 +264,49 @@ export class WKKanjiItem extends WKItem {
         super.setValue(id, value);
     }
   }
+
+  static async fromSubject(subject: WKKanjiSubject): Promise<WKKanjiItem> {
+    return new WKKanjiItem(
+      subject.id,
+      subject.meanings
+        .sort((a, _) => (a.primary ? -1 : 1))
+        .map((meaning) => meaning.meaning) as [string, ...string[]],
+      subject.characters!,
+      subject.readings
+        .sort((a, _) => (a.primary ? -1 : 1))
+        .filter((reading) => reading.type === "onyomi")
+        .map((reading) => reading.reading),
+      subject.readings
+        .sort((a, _) => (a.primary ? -1 : 1))
+        .filter((reading) => reading.type === "kunyomi")
+        .map((reading) => reading.reading),
+      subject.readings
+        .sort((a, _) => (a.primary ? -1 : 1))
+        .filter((reading) => reading.type === "nanori")
+        .map((reading) => reading.reading),
+      subject.readings.find((reading) => reading.primary)!.type,
+      subject.meaning_mnemonic,
+      subject.meaning_hint!,
+      subject.reading_mnemonic,
+      subject.reading_hint!,
+      subject.component_subject_ids,
+      subject.amalgamation_subject_ids,
+      subject.auxiliary_meanings,
+      // TODO: auxiliary readings, relationships
+      [],
+      {
+        study_material: {
+          meaning_synonyms: [],
+          meaning_note: "",
+          reading_note: "",
+          id: 0,
+        },
+      }
+    );
+  }
 }
 
-interface WKKanjiReviewItem extends WKReviewItem {
+export interface WKKanjiReviewItem extends WKReviewItem {
   en: [string, ...string[]];
   id: number;
   on: string[];
@@ -225,7 +323,7 @@ interface WKKanjiReviewItem extends WKReviewItem {
   syn: string[];
 }
 
-interface WKKanjiLessonItem extends WKLessonItem {
+export interface WKKanjiLessonItem extends WKLessonItem {
   en: string[];
   id: number;
   on: string[];
@@ -247,7 +345,7 @@ interface WKKanjiLessonItem extends WKLessonItem {
   relationships: WKRelationship;
 }
 
-interface WKKanjiJsonItem extends WKJsonItem {
+export interface WKKanjiJsonItem extends WKJsonItem {
   type: "Kanji";
   kan: string;
   meaning_mnemonic: string;
@@ -256,6 +354,20 @@ interface WKKanjiJsonItem extends WKJsonItem {
   reading_hint: string;
   reading_note: string | null;
   related: WKKanjiRadical[];
+}
+
+export interface WKKanjiExportItem extends WKExportItem {
+  type: "kan";
+  onyomi: string[];
+  kunyomi: string[];
+  nanori: string[];
+  emphasis: "onyomi" | "kunyomi" | "nanori";
+  meaningHint: string;
+  readingHint: string;
+  readingMnemonic: string;
+  radicals: string[];
+  vocabulary: string[];
+  auxiliaryReadings: AuxiliaryReading[];
 }
 
 export interface WKKanjiRadical {

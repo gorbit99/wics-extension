@@ -13,16 +13,19 @@ type ActualRequest = WKSubjectsRequest | WKUserRequest;
 
 export interface WKResponseItem {
   id: number;
+  object: string;
 }
 
 export async function fetchEndpoint<Type extends WKResponseItem>(
   request: ActualRequest,
   useCache: boolean = true,
-  apiKey?: string
+  apiKey?: string,
+  lastUpdated?: number,
+  saveCache: boolean = true
 ): Promise<Type | Type[] | null> {
   const cacheData = useCache ? await getFromCache<Type>(request) : null;
-  const lastUpdated = cacheData?.lastUpdated;
-  const liveData = await fetchFromWK<Type>(request, lastUpdated, apiKey);
+  const useLastUpdated = lastUpdated ?? cacheData?.lastUpdated;
+  const liveData = await fetchFromWK<Type>(request, useLastUpdated, apiKey);
 
   if (isReport(request)) {
     const data = liveData ?? cacheData?.data ?? null;
@@ -35,7 +38,9 @@ export async function fetchEndpoint<Type extends WKResponseItem>(
   const result = original
     .filter((item) => !newData.some((newItem) => newItem.id === item.id))
     .concat(newData);
-  updateCache(request, result);
+  if (saveCache) {
+    updateCache(request, result);
+  }
   return result;
 }
 
@@ -105,17 +110,18 @@ function isReport(request: WKRequest): boolean {
 }
 
 interface WKResponse {
-  object: "collection" | "report";
+  object: string;
   url: string;
   data_updated_at: string;
 }
 
 interface WKReportResponse<Value extends WKResponseItem> extends WKResponse {
-  object: "report";
+  id: number;
+  object: string;
   data: Value;
 }
 
-interface WKCollectionResponse<Value extends WKResponseItem>
+export interface WKCollectionResponse<Value extends WKResponseItem>
   extends WKResponse {
   object: "collection";
   pages: {
@@ -124,7 +130,7 @@ interface WKCollectionResponse<Value extends WKResponseItem>
     per_page: number;
   };
   total_count: number;
-  data: Value[];
+  data: WKReportResponse<Value>[];
 }
 
 async function fetchCollectionFromWK<Type extends WKResponseItem>(
@@ -132,9 +138,23 @@ async function fetchCollectionFromWK<Type extends WKResponseItem>(
   lastUpdated?: number,
   apiKey?: string
 ): Promise<Type[]> {
+  const rawResponse = await fetchRawCollectionFromWK<Type>(
+    request,
+    lastUpdated,
+    apiKey
+  );
+  return rawResponse.data;
+}
+
+export async function fetchRawCollectionFromWK<Type extends WKResponseItem>(
+  request: WKRequest,
+  lastUpdated?: number,
+  apiKey?: string
+): Promise<{ data: Type[]; total: number }> {
   let currentUrl: URL | null = createRequestUrl(request, lastUpdated);
 
   const result = [];
+  let totalResult = 0;
 
   while (currentUrl != null) {
     const json = (await makeWKRequest(
@@ -143,13 +163,21 @@ async function fetchCollectionFromWK<Type extends WKResponseItem>(
       apiKey
     )) as WKCollectionResponse<Type> | null;
     if (json == null) {
-      return [];
+      return { total: 0, data: [] };
     }
     result.push(...json.data);
     currentUrl = json.pages.next_url ? new URL(json.pages.next_url) : null;
+    totalResult = json.total_count;
   }
 
-  return result;
+  return {
+    data: result.map((item) => ({
+      ...item.data,
+      id: item.id,
+      object: item.object,
+    })),
+    total: totalResult,
+  };
 }
 
 async function fetchReportFromWK<Type extends WKResponseItem>(
@@ -163,10 +191,13 @@ async function fetchReportFromWK<Type extends WKResponseItem>(
     lastUpdated,
     apiKey
   )) as WKReportResponse<Type> | null;
-  return json?.data ?? null;
+  if (json == null) {
+    return null;
+  }
+  return { ...json.data, id: json.id, object: json.object };
 }
 
-async function makeWKRequest(
+export async function makeWKRequest(
   url: URL,
   updatedAfter?: number,
   apiKey?: string
@@ -190,7 +221,10 @@ async function makeWKRequest(
   return json;
 }
 
-function createRequestUrl(request: WKRequest, lastUpdated?: number): URL {
+export function createRequestUrl(
+  request: WKRequest,
+  lastUpdated?: number
+): URL {
   const url = new URL("https://api.wanikani.com/v2/" + request.endpoint);
   if (lastUpdated) {
     url.searchParams.set("updated_after", new Date(lastUpdated).toISOString());

@@ -1,4 +1,5 @@
 import { createAlert } from "../components/alert";
+import { ProgressManager } from "../ProgressManager";
 import { CustomDeck } from "../storage/customDeck";
 import { StorageHandler } from "../storageHandler";
 import { WKItem } from "../wanikani";
@@ -8,7 +9,7 @@ import { kanjiViewFields } from "./newItem/kanji";
 import { radicalViewFields } from "./newItem/radical";
 import { vocabularyViewFields } from "./newItem/vocabulary";
 
-export function renderItemView(
+export async function renderItemView(
   deck: CustomDeck,
   item: WKItem,
   decksRoot: HTMLElement
@@ -26,8 +27,18 @@ export function renderItemView(
     vocabulary: vocabularyViewFields,
   }[item.type];
 
-  const itemGroupInstance = viewFields.render((id: string) => {
-    return item.getValue(id) as string | string[];
+  const itemGroupInstance = await viewFields.render(async (id: string) => {
+    const value = item.getValue(id);
+    if (id === "kanji" || id == "radicals" || id == "vocabulary") {
+      const promise = StorageHandler.getInstance().getAllItemsFromIds(value);
+      ProgressManager.getInstance().handleProgressEvent(
+        promise,
+        "Getting items from the WK server..."
+      );
+      const items = await promise;
+      return items.map((item) => item.getValue("characters"));
+    }
+    return item.getValue(id);
   });
 
   const saveButton = decksRoot.querySelector(".item-view-save-button")!;
@@ -41,7 +52,12 @@ export function renderItemView(
       return;
     }
     const value = itemGroupInstance.getValue();
-    item.updateData(value);
+    const promise = item.updateData(value);
+    ProgressManager.getInstance().handleProgressEvent(
+      promise,
+      "Saving item..."
+    );
+    await promise;
     await StorageHandler.getInstance().updateDeck(deck.getName(), deck);
 
     saveButton.classList.remove("active");

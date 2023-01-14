@@ -5,7 +5,7 @@ export class ConstantFieldRenderer<Type> extends FieldRenderer<Type> {
     super("Constant");
   }
 
-  render(): ConstantFieldInstance<Type> {
+  async render(): Promise<ConstantFieldInstance<Type>> {
     return new ConstantFieldInstance(this.name, this.value);
   }
 }

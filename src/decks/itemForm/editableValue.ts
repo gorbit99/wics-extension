@@ -12,7 +12,7 @@ export class EditableValueFieldRenderer extends FieldRenderer<string> {
     super(name);
   }
 
-  render(value?: string): EditableValueFieldInstance {
+  async render(value?: string): Promise<EditableValueFieldInstance> {
     const optionContainer = document.createElement("div");
     optionContainer.classList.add("item-option-container");
 

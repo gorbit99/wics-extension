@@ -1,7 +1,13 @@
+import { WKRadicalSubject } from "../storage/wkapi";
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, WKRelationship } from "./common";
 import { WKItem } from "./item";
-import { WKJsonItem, WKLessonItem, WKReviewItem } from "./item/types";
+import {
+  WKExportItem,
+  WKJsonItem,
+  WKLessonItem,
+  WKReviewItem,
+} from "./item/types";
 import { WKKanjiItem, WKKanjiRadical } from "./kanji";
 import { WKSrsData } from "./srsData";
 
@@ -71,6 +77,39 @@ export class WKRadicalItem extends WKItem {
     };
   }
 
+  async getExportData(): Promise<WKRadicalExportItem> {
+    return {
+      ...this.getBaseExportData(),
+      characterImageUrl: this.characterImageUrl,
+      kanji: (
+        await StorageHandler.getInstance().getAllItemsFromIds(this.kanji)
+      ).map((item) => item.getCharacters()),
+    } as WKRadicalExportItem;
+  }
+
+  static async fromExportData(
+    id: number,
+    data: WKRadicalExportItem
+  ): Promise<WKRadicalItem> {
+    return new WKRadicalItem(
+      id,
+      data.english,
+      data.characters,
+      data.auxiliaryMeanings,
+      {
+        study_material: {
+          meaning_note: "",
+          meaning_synonyms: [],
+          reading_note: "",
+          id: 0,
+        },
+      },
+      data.meaningMnemonic,
+      data.characterImageUrl,
+      await StorageHandler.getInstance().kanjiToIds(data.kanji)
+    );
+  }
+
   getKanjiRadicalData(): WKKanjiRadical {
     return {
       id: this.id,
@@ -125,9 +164,32 @@ export class WKRadicalItem extends WKItem {
         super.setValue(id, value);
     }
   }
+
+  static async fromSubject(subject: WKRadicalSubject): Promise<WKRadicalItem> {
+    return new WKRadicalItem(
+      subject.id,
+      subject.meanings
+        .sort((a, _) => (a.primary ? -1 : 1))
+        .map((meaning) => meaning.meaning) as [string, ...string[]],
+      subject.characters!,
+      subject.auxiliary_meanings,
+      // TODO: relationships
+      {
+        study_material: {
+          meaning_note: "",
+          meaning_synonyms: [],
+          reading_note: "",
+          id: 0,
+        },
+      },
+      subject.meaning_mnemonic,
+      null,
+      subject.amalgamation_subject_ids
+    );
+  }
 }
 
-interface WKRadicalReviewItem extends WKReviewItem {
+export interface WKRadicalReviewItem extends WKReviewItem {
   rad: string;
   type: "Radical";
   category: "Radical";
@@ -136,7 +198,7 @@ interface WKRadicalReviewItem extends WKReviewItem {
   syn: string[];
 }
 
-interface WKRadicalLessonItem extends WKLessonItem {
+export interface WKRadicalLessonItem extends WKLessonItem {
   rad: string;
   type: "Radical";
   kanji: WKRadicalKanji[];
@@ -144,10 +206,16 @@ interface WKRadicalLessonItem extends WKLessonItem {
   character_image_url: string | null;
 }
 
-interface WKRadicalJsonItem extends WKJsonItem {
+export interface WKRadicalJsonItem extends WKJsonItem {
   type: "Radical";
   rad: string;
   mnemonic: string;
+}
+
+export interface WKRadicalExportItem extends WKExportItem {
+  type: "rad";
+  characterImageUrl: string | null;
+  kanji: string[];
 }
 
 export interface WKRadicalKanji {

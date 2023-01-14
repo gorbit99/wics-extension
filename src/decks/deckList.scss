@@ -1,13 +1,25 @@
 @import "src/components/mixins.scss";
 
+.decks-list-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+}
+
 .decks-list {
   width: 100%;
   margin-top: 0.5em;
   display: flex;
   flex-direction: row;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   justify-content: flex-start;
   gap: calc((100% - 30% * 3) / 2);
+  align-items: flex-start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .deck {
@@ -64,7 +76,7 @@
   width: 80%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background-image: conic-gradient(var(--wanikani-lesson-color) 0deg 360deg);
+  background-image: conic-gradient(var(--wanikani-locked-color) 0deg 360deg);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -85,4 +97,15 @@
   font-size: 5em;
   content: "\f067";
   color: #666;
+}
+
+.decks-list-actions {
+  align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1em;
+  padding: 0.5em;
+  border-top: 1px solid var(--primary-border-color);
+  box-shadow: 0 0 0.25em var(--shadow-color);
 }

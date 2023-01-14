@@ -28,3 +28,11 @@ export interface WKJsonItem {
   stroke: number | string;
   meaning_note: string | null;
 }
+
+export interface WKExportItem {
+  type: "rad" | "kan" | "voc";
+  english: [string, ...string[]];
+  characters: string;
+  auxiliaryMeanings: AuxiliaryMeaning[];
+  meaningMnemonic: string;
+}

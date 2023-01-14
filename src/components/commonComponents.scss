@@ -9,7 +9,8 @@
   cursor: pointer;
   user-select: none;
 
-  &:hover {
+  &:hover,
+  &.active {
     background: var(--button-hover-color);
   }
 }
@@ -19,7 +20,8 @@
   color: var(--text-color);
   border-color: var(--delete-color);
 
-  &:hover {
+  &:hover,
+  &.active {
     background: var(--delete-color);
   }
 }
@@ -28,7 +30,8 @@
   background: var(--container-color);
   border-width: 2px;
 
-  &:hover {
+  &:hover,
+  &.active {
     background: var(--button-hover-color);
   }
 }

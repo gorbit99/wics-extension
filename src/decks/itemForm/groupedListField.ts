@@ -19,7 +19,7 @@ export class GroupedListFieldRenderer<
     super(name);
   }
 
-  render(value?: RowValue[]): FieldInstance<RowValue[]> {
+  async render(value?: RowValue[]): Promise<FieldInstance<RowValue[]>> {
     const hadDefaultValue = value != undefined;
 
     const container = document.createElement("div");
@@ -109,19 +109,19 @@ export class GroupedListFieldInstance<
       .every((x) => x);
   }
 
-  public addValue(value?: RowValue): void {
+  public async addValue(value?: RowValue): Promise<void> {
     const row = this.createRow(value);
-    this.list.insertBefore(row, this.newButton);
+    this.list.insertBefore(await row, this.newButton);
     this.notifyChange();
   }
 
-  private createRow(value?: RowValue): HTMLElement {
+  private async createRow(value?: RowValue): Promise<HTMLElement> {
     const rowContainer = document.createElement("div");
     rowContainer.classList.add("item-form-group-list-row-container");
     const row = document.createElement("div");
     row.classList.add("item-form-group-list-row");
 
-    const rowInstance = this.rowRenderer.render(value);
+    const rowInstance = await this.rowRenderer.render(value);
     row.append(...rowInstance.getHTML());
     this.instances.push(rowInstance);
     rowInstance.onChange(() => this.notifyChange());

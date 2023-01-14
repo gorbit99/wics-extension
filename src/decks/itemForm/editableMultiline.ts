@@ -6,7 +6,7 @@ export class EditableMultilineFieldRenderer extends FieldRenderer<string> {
     super(name);
   }
 
-  render(value?: string): FieldInstance<string> {
+  async render(value?: string): Promise<FieldInstance<string>> {
     const optionContainer = document.createElement("div");
     optionContainer.classList.add("item-option-container");
 

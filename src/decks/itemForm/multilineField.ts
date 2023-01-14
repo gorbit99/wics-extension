@@ -6,7 +6,7 @@ export class MultiLineFieldRenderer extends FieldRenderer<string> {
     super(name);
   }
 
-  render(value?: string): MultiLineFieldInstance {
+  async render(value?: string): Promise<MultiLineFieldInstance> {
     const optionContainer = document.createElement("div");
     optionContainer.classList.add("item-option-container");
 

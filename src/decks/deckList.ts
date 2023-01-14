@@ -4,6 +4,7 @@ import { CustomDeck } from "../storage/customDeck";
 import { renderDeckView } from "./deckView";
 import errors from "./errors";
 import { fetchUser } from "../storage/wkapi/user";
+import { renderImportDeck } from "./importDeck";
 
 export async function renderDeckList(decksRoot: HTMLElement) {
   const decksContent = decksRoot.querySelector(".popup-content") as HTMLElement;
@@ -24,6 +25,7 @@ export async function renderDeckList(decksRoot: HTMLElement) {
     deckElement.querySelector(".deck-name")!.textContent = deck.getName();
     deckElement.querySelector(".deck-count")!.textContent = `${deck.getItems().length
       } item${deck.getItems().length === 1 ? "" : "s"}`;
+
     decksList.append(deckElement);
     deckElement.addEventListener("click", () =>
       renderDeckView(deck, decksRoot)
@@ -35,6 +37,11 @@ export async function renderDeckList(decksRoot: HTMLElement) {
   });
 
   createNewDeckElement(decksList, decksRoot);
+
+  const importButton = decksContent.querySelector(".decks-list-import")!;
+  importButton.addEventListener("click", () => {
+    renderImportDeck(decksRoot);
+  });
 }
 
 async function createNewDeck(decksList: HTMLElement, decksRoot: HTMLElement) {
@@ -135,7 +142,7 @@ function createProgressGradient(deck: CustomDeck) {
   const itemCount = deck.getItems().length;
 
   if (itemCount === 0) {
-    return "conic-gradient(var(--wanikani-lesson-color) 0deg 360deg)";
+    return "conic-gradient(var(--wanikani-locked-color) 0deg 360deg)";
   }
 
   const percentages = Object.values(progress).map((value) =>
@@ -153,6 +160,7 @@ function createProgressGradient(deck: CustomDeck) {
     var(--wanikani-guru-color) ${windowPercentages[2]}% ${windowPercentages[3]}%,
     var(--wanikani-master-color) ${windowPercentages[3]}% ${windowPercentages[4]}%,
     var(--wanikani-enlightened-color) ${windowPercentages[4]}% ${windowPercentages[5]}%,
-    var(--wanikani-burned-color) ${windowPercentages[5]}% 100%
+    var(--wanikani-burned-color) ${windowPercentages[5]}% ${windowPercentages[6]}%,
+    var(--wanikani-locked-color) ${windowPercentages[6]}% 100%
   )`;
 }

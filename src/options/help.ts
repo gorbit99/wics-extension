@@ -13,6 +13,9 @@ const helpText = {
     "open the decks panel.",
   removeAllDecks:
     "Removes all of the decks from your setup, including the items within.",
+  clearBrowserStorage:
+    "Clears all the data stored in your browser by this extensions. This " +
+    "includes the API key, decks, and cached WK data.",
 };
 
 export function setupHelpElements(optionsRoot: HTMLElement) {

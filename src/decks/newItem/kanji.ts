@@ -17,13 +17,14 @@ import { MultiLineFieldRenderer } from "../itemForm/multilineField";
 import { SelectFieldRenderer } from "../itemForm/selectField";
 import { TextFieldRenderer } from "../itemForm/textField";
 
-type Kanji = {
+export type Kanji = {
   characters: string;
   english: string[];
   emphasis: "onyomi" | "kunyomi" | "nanori";
   onyomi: string[];
   kunyomi: string[];
   nanori: string[];
+  radicals: string[];
   vocabulary: string[];
   meaningMnemonic: string;
   meaningHint: string;
@@ -65,6 +66,13 @@ const kanjiInputFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
   nanori: new ListFieldRenderer(
     "Nanori",
     { minLength: 1, type: "kana" },
+    undefined,
+    undefined,
+    true
+  ),
+  radicals: new ListFieldRenderer(
+    "Radicals",
+    { minLength: 1, type: "japanese" },
     undefined,
     undefined,
     true
@@ -144,6 +152,13 @@ const kanjiViewFields: FieldGroupRenderer<Kanji> = new FieldGroupRenderer({
     undefined,
     true
   ),
+  radicals: new ListFieldRenderer(
+    "Radicals",
+    { minLength: 1, type: "japanese" },
+    undefined,
+    undefined,
+    true
+  ),
   vocabulary: new ListFieldRenderer(
     "Vocabulary",
     { minLength: 1 },
@@ -202,14 +217,13 @@ export async function convertToKanji(
     kanji.characters,
     kanji.onyomi,
     kanji.kunyomi,
-    kanji.vocabulary,
+    kanji.nanori,
     kanji.emphasis,
     kanji.meaningMnemonic,
     kanji.meaningHint,
     kanji.readingMnemonic,
     kanji.readingHint,
-    // TODO: radicals
-    [],
+    await StorageHandler.getInstance().radicalsToIds(kanji.radicals),
     await StorageHandler.getInstance().vocabularyToIds(kanji.vocabulary),
     kanji.auxiliaryMeanings,
     kanji.auxiliaryReadings,

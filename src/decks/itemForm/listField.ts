@@ -17,7 +17,7 @@ export class ListFieldRenderer extends FieldRenderer<string[]> {
     super(name);
   }
 
-  render(value?: string[]): FieldInstance<string[]> {
+  async render(value?: string[]): Promise<FieldInstance<string[]>> {
     return new ListFieldInstance(
       this.name,
       value,

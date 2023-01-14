@@ -1,4 +1,5 @@
 export type BroadSrsLevel =
+  | "locked"
   | "lesson"
   | "apprentice"
   | "guru"

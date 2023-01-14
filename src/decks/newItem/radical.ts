@@ -16,7 +16,7 @@ import { MultiLineFieldRenderer } from "../itemForm/multilineField";
 import { SelectFieldRenderer } from "../itemForm/selectField";
 import { TextFieldRenderer } from "../itemForm/textField";
 
-type Radical = {
+export type Radical = {
   characters: string;
   english: string[];
   kanji: string[];

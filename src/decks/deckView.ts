@@ -1,3 +1,4 @@
+import JSZip from "jszip";
 import { createAlert } from "../components/alert";
 import { CustomDeck } from "../storage/customDeck";
 import { StorageHandler } from "../storageHandler";
@@ -26,6 +27,10 @@ export function renderDeckView(deck: CustomDeck, decksRoot: HTMLElement) {
   decksRoot
     .querySelector(".deck-view-add-item")
     ?.addEventListener("click", () => renderNewItem(deck, decksRoot));
+
+  decksRoot
+    .querySelector(".deck-view-export-deck")
+    ?.addEventListener("click", () => exportDeck(deck));
 
   decksRoot
     .querySelector(".deck-view-delete-deck")
@@ -187,4 +192,21 @@ function renderItem(
   });
 
   return clone;
+}
+
+async function exportDeck(deck: CustomDeck) {
+  const data = JSON.stringify(await deck.getExportData());
+  const zip = new JSZip();
+  zip.file("deck.json", data);
+  zip
+    .generateAsync({ type: "blob", compression: "DEFLATE" })
+    .then((content) => {
+      const url = URL.createObjectURL(content);
+      const link = document.createElement("a");
+      link.href = url;
+      document.body.appendChild(link);
+      link.download = `${deck.getName()}.deck`;
+      link.click();
+      link.remove();
+    });
 }
