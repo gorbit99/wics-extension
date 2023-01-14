@@ -11,6 +11,9 @@ const individualCacheSize = 500;
 const localCache: Map<number, WKSubject[]> = new Map();
 
 export async function fetchSubjects(ids?: number[]): Promise<WKSubject[]> {
+  if (ids && ids.length === 0) {
+    return [];
+  }
   const subjectInfo = (await browser.storage.local.get("subjectsInfo"))
     .subjectsInfo as SubjectsInfo | undefined;
 

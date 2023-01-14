@@ -9,7 +9,7 @@ import { WKKanjiItem } from "./kanji";
 import { WKRadicalItem } from "./radical";
 import { WKVocabularyItem } from "./vocabulary";
 
-export async function fromSubject(subject: WKSubject): Promise<WKItem> {
+export function fromSubject(subject: WKSubject): WKItem {
   switch (subject.object) {
     case "radical":
       return WKRadicalItem.fromSubject(subject as WKRadicalSubject);

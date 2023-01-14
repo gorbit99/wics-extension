@@ -33,7 +33,7 @@ export abstract class WKItem {
   abstract getReviewData(): Promise<WKReviewItem>;
   abstract getLessonData(): Promise<WKLessonItem>;
   abstract getJsonData(): Promise<WKJsonItem>;
-  abstract getExportData(): Promise<WKExportItem>;
+  abstract getExportData(wkItems: WKItem[]): Promise<WKExportItem>;
 
   protected getBaseExportData(): WKExportItem {
     return {

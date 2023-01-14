@@ -77,19 +77,23 @@ export class WKRadicalItem extends WKItem {
     };
   }
 
-  async getExportData(): Promise<WKRadicalExportItem> {
+  async getExportData(wkItems: WKItem[]): Promise<WKRadicalExportItem> {
     return {
       ...this.getBaseExportData(),
       characterImageUrl: this.characterImageUrl,
-      kanji: (
-        await StorageHandler.getInstance().getAllItemsFromIds(this.kanji)
-      ).map((item) => item.getCharacters()),
+      kanji: wkItems
+        .filter((item) => this.kanji.includes(item.getID()))
+        .map((item) => item.getCharacters()),
     } as WKRadicalExportItem;
   }
 
   static async fromExportData(
     id: number,
-    data: WKRadicalExportItem
+    data: WKRadicalExportItem,
+    getIdFromCharacter: (
+      character: string,
+      type: "radical" | "kanji" | "vocabulary"
+    ) => number
   ): Promise<WKRadicalItem> {
     return new WKRadicalItem(
       id,
@@ -106,7 +110,7 @@ export class WKRadicalItem extends WKItem {
       },
       data.meaningMnemonic,
       data.characterImageUrl,
-      await StorageHandler.getInstance().kanjiToIds(data.kanji)
+      data.kanji.map((character) => getIdFromCharacter(character, "kanji"))
     );
   }
 
@@ -165,7 +169,7 @@ export class WKRadicalItem extends WKItem {
     }
   }
 
-  static async fromSubject(subject: WKRadicalSubject): Promise<WKRadicalItem> {
+  static fromSubject(subject: WKRadicalSubject): WKRadicalItem {
     return new WKRadicalItem(
       subject.id,
       subject.meanings

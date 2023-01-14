@@ -105,7 +105,7 @@ export class WKKanjiItem extends WKItem {
     };
   }
 
-  async getExportData(): Promise<WKKanjiExportItem> {
+  async getExportData(wkItems: WKItem[]): Promise<WKKanjiExportItem> {
     return {
       ...this.getBaseExportData(),
       onyomi: this.onyomi,
@@ -115,19 +115,23 @@ export class WKKanjiItem extends WKItem {
       meaningHint: this.meaningHint,
       readingHint: this.readingHint,
       readingMnemonic: this.readingMnemonic,
-      radicals: (
-        await StorageHandler.getInstance().getAllItemsFromIds(this.radicals)
-      ).map((item) => item.getCharacters()),
-      vocabulary: (
-        await StorageHandler.getInstance().getAllItemsFromIds(this.vocabulary)
-      ).map((item) => item.getCharacters()),
+      radicals: wkItems
+        .filter((item) => this.radicals.includes(item.getID()))
+        .map((item) => item.getCharacters()),
+      vocabulary: wkItems
+        .filter((item) => this.vocabulary.includes(item.getID()))
+        .map((item) => item.getCharacters()),
       auxiliaryReadings: this.auxiliaryReadings,
     } as WKKanjiExportItem;
   }
 
   static async fromExportData(
     id: number,
-    data: WKKanjiExportItem
+    data: WKKanjiExportItem,
+    getIdFromCharacter: (
+      character: string,
+      type: "radical" | "kanji" | "vocabulary"
+    ) => number
   ): Promise<WKKanjiItem> {
     return new WKKanjiItem(
       id,
@@ -141,8 +145,12 @@ export class WKKanjiItem extends WKItem {
       data.meaningHint,
       data.readingMnemonic,
       data.readingHint,
-      await StorageHandler.getInstance().radicalsToIds(data.radicals),
-      await StorageHandler.getInstance().vocabularyToIds(data.vocabulary),
+      data.radicals.map((character) =>
+        getIdFromCharacter(character, "radical")
+      ),
+      data.vocabulary.map((character) =>
+        getIdFromCharacter(character, "vocabulary")
+      ),
       data.auxiliaryMeanings,
       data.auxiliaryReadings,
       {
@@ -265,7 +273,7 @@ export class WKKanjiItem extends WKItem {
     }
   }
 
-  static async fromSubject(subject: WKKanjiSubject): Promise<WKKanjiItem> {
+  static fromSubject(subject: WKKanjiSubject): WKKanjiItem {
     return new WKKanjiItem(
       subject.id,
       subject.meanings

@@ -1,6 +1,7 @@
 import { renderDeckList } from "./decks/deckList";
 import oobHtml from "./oobSetup.html?raw";
-import { setApiToken } from "./storage/wkapi";
+import { ProgressManager } from "./ProgressManager";
+import { fetchSubjects, setApiToken } from "./storage/wkapi";
 import { fetchUser } from "./storage/wkapi/user";
 
 export function renderOOBSetup(popupRoot: HTMLElement) {
@@ -36,6 +37,13 @@ export function renderOOBSetup(popupRoot: HTMLElement) {
     loader.classList.remove("active");
 
     await setApiToken(apiToken);
+
+    const promise = fetchSubjects();
+    ProgressManager.getInstance().handleProgressEvent(
+      promise,
+      "Loading subjects from WK..."
+    );
+
     renderDeckList(popupRoot);
   });
 }

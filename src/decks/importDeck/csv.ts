@@ -16,6 +16,8 @@ import {
   WKVocabularyItem,
 } from "../../wanikani";
 import { StorageHandler } from "../../storageHandler";
+import { fetchSubjects } from "../../storage/wkapi";
+import { fromSubject } from "../../wanikani/fromSubject";
 
 interface CsvParameters {
   file: File;
@@ -119,6 +121,20 @@ export async function importCsv(
         parameters.separator = "\t";
       }
 
+      const wkItems = (await fetchSubjects()).map((subject) =>
+        fromSubject(subject)
+      );
+
+      const getIdFromCharacter = (
+        character: string,
+        type: "radical" | "kanji" | "vocabulary"
+      ) =>
+        wkItems
+          .find(
+            (item) => item.getCharacters() == character && item.type == type
+          )
+          ?.getID() ?? 0;
+
       await Promise.all(
         csvData.map(async (row) => {
           const type =
@@ -130,7 +146,8 @@ export async function importCsv(
             row,
             fieldIndices,
             nextId,
-            parameters.listSeparator
+            parameters.listSeparator,
+            getIdFromCharacter
           );
           nextId++;
 
@@ -148,7 +165,11 @@ async function parseRow(
   row: string[],
   fieldIndices: Record<keyof typeof wkItemFields, number>,
   id: number,
-  listSeparator: string
+  listSeparator: string,
+  getIdFromCharacter: (
+    character: string,
+    type: "radical" | "kanji" | "vocabulary"
+  ) => number
 ): Promise<WKItem> {
   const english = row[fieldIndices.english]!.split(listSeparator) as [
     string,
@@ -182,8 +203,8 @@ async function parseRow(
         },
         row[fieldIndices.meaningMnemonic] ?? "",
         row[fieldIndices.characterImageUrl] ?? null,
-        await StorageHandler.getInstance().kanjiToIds(
-          row[fieldIndices.kanji]?.split(listSeparator) ?? []
+        (row[fieldIndices.kanji]?.split(listSeparator) ?? []).map((character) =>
+          getIdFromCharacter(character, "kanji")
         )
       );
     }
@@ -214,11 +235,11 @@ async function parseRow(
         row[fieldIndices.meaningHint] ?? "",
         row[fieldIndices.readingMnemonic] ?? "",
         row[fieldIndices.readingHint] ?? "",
-        await StorageHandler.getInstance().radicalsToIds(
-          row[fieldIndices.radicals]?.split(listSeparator) ?? []
+        (row[fieldIndices.radicals]?.split(listSeparator) ?? []).map(
+          (character) => getIdFromCharacter(character, "radical")
         ),
-        await StorageHandler.getInstance().vocabularyToIds(
-          row[fieldIndices.vocabulary]?.split(listSeparator) ?? []
+        (row[fieldIndices.vocabulary]?.split(listSeparator) ?? []).map(
+          (character) => getIdFromCharacter(character, "vocabulary")
         ),
         auxiliaryMeanings,
         auxiliaryReadings,
@@ -251,8 +272,8 @@ async function parseRow(
         row[fieldIndices.kana]?.split(listSeparator) ?? [],
         row[fieldIndices.meaningMnemonic] ?? "",
         row[fieldIndices.readingMnemonic] ?? "",
-        await StorageHandler.getInstance().kanjiToIds(
-          row[fieldIndices.kanji]?.split(listSeparator) ?? []
+        (row[fieldIndices.kanji]?.split(listSeparator) ?? []).map((character) =>
+          getIdFromCharacter(character, "kanji")
         ),
         [],
         [],

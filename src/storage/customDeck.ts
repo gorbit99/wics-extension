@@ -9,8 +9,10 @@ import {
   WKVocabularyExportItem,
   WKVocabularyItem,
 } from "../wanikani";
+import { fromSubject } from "../wanikani/fromSubject";
 import { WKItem } from "../wanikani/item";
 import { WKExportItem } from "../wanikani/item/types";
+import { fetchSubjects } from "./wkapi";
 import { fetchUser } from "./wkapi/user";
 
 export class CustomDeck {
@@ -22,7 +24,7 @@ export class CustomDeck {
     private author: string,
     private deckId: string = "",
     private lastUpdated: number = new Date().getTime()
-  ) { }
+  ) {}
 
   getName(): string {
     return this.name;
@@ -102,6 +104,7 @@ export class CustomDeck {
   }
 
   async getExportData(): Promise<CustomDeckExportData> {
+    const wkItems = (await fetchSubjects()).map((item) => fromSubject(item));
     return {
       exportDate: new Date().getTime(),
       name: this.name,
@@ -109,7 +112,7 @@ export class CustomDeck {
       deckId: `${this.getAuthor()}.${this.getName()}`,
       description: this.description,
       items: await Promise.all(
-        this.items.map(async (item) => item.getExportData())
+        this.items.map(async (item) => item.getExportData(wkItems))
       ),
     };
   }
@@ -122,24 +125,41 @@ export class CustomDeck {
       data.exportDate
     );
     deck.setDescription(data.description);
+    await fetchSubjects();
     const nextId = await StorageHandler.getInstance().getNewId();
+
+    const wkItems = (await fetchSubjects()).map((item) => fromSubject(item));
+
+    const getIdFromCharacter = (
+      characters: string,
+      type: "radical" | "kanji" | "vocabulary"
+    ) =>
+      wkItems
+        .find(
+          (item) => item.getCharacters() === characters && item.type === type
+        )!
+        .getID();
+
     deck.items = await Promise.all(
       data.items.map(async (item, id) => {
         switch (item.type) {
           case "rad":
             return WKRadicalItem.fromExportData(
               nextId + id,
-              item as WKRadicalExportItem
+              item as WKRadicalExportItem,
+              getIdFromCharacter
             );
           case "kan":
             return WKKanjiItem.fromExportData(
               nextId + id,
-              item as WKKanjiExportItem
+              item as WKKanjiExportItem,
+              getIdFromCharacter
             );
           case "voc":
             return WKVocabularyItem.fromExportData(
               nextId + id,
-              item as WKVocabularyExportItem
+              item as WKVocabularyExportItem,
+              getIdFromCharacter
             );
         }
       })

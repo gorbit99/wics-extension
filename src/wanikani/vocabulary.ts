@@ -118,15 +118,15 @@ export class WKVocabularyItem extends WKItem {
     };
   }
 
-  async getExportData(): Promise<WKVocabularyExportItem> {
+  async getExportData(wkItems: WKItem[]): Promise<WKVocabularyExportItem> {
     return {
       ...this.getBaseExportData(),
       audio: this.audio,
       kana: this.kana,
       readingMnemonic: this.readingMnemonic,
-      kanji: (
-        await StorageHandler.getInstance().getAllItemsFromIds(this.kanji)
-      ).map((item) => item.getCharacters()),
+      kanji: wkItems
+        .filter((item) => this.kanji.includes(item.getID()))
+        .map((item) => item.getCharacters()),
       sentences: this.sentences,
       collocations: this.collocations,
       partsOfSpeech: this.partsOfSpeech,
@@ -136,7 +136,11 @@ export class WKVocabularyItem extends WKItem {
 
   static async fromExportData(
     id: number,
-    data: WKVocabularyExportItem
+    data: WKVocabularyExportItem,
+    getIdFromCharacter: (
+      character: string,
+      type: "radical" | "kanji" | "vocabulary"
+    ) => number
   ): Promise<WKVocabularyItem> {
     return new WKVocabularyItem(
       id,
@@ -146,7 +150,7 @@ export class WKVocabularyItem extends WKItem {
       data.kana,
       data.meaningMnemonic,
       data.readingMnemonic,
-      await StorageHandler.getInstance().kanjiToIds(data.kanji),
+      data.kanji.map((character) => getIdFromCharacter(character, "kanji")),
       data.sentences,
       data.collocations,
       data.partsOfSpeech,
@@ -240,9 +244,7 @@ export class WKVocabularyItem extends WKItem {
     }
   }
 
-  static async fromSubject(
-    subject: WKVocabularySubject
-  ): Promise<WKVocabularyItem> {
+  static fromSubject(subject: WKVocabularySubject): WKVocabularyItem {
     return new WKVocabularyItem(
       subject.id,
       subject.meanings
@@ -265,7 +267,6 @@ export class WKVocabularyItem extends WKItem {
         english: sentence.en,
         japanese: sentence.ja,
       })),
-      // TODO: collocations, relationships, auxiliary_readings
       [],
       subject.parts_of_speech,
       subject.auxiliary_meanings,
