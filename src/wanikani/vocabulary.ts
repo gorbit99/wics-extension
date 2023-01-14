@@ -179,7 +179,7 @@ export class WKVocabularyItem extends WKItem {
   }
 
   private async mapKanji(): Promise<WKVocabularyKanji[]> {
-    const kanji = (await StorageHandler.getInstance().getItemsFromIds(
+    const kanji = (await StorageHandler.getInstance().getAllItemsFromIds(
       this.kanji
     )) as WKKanjiItem[];
     return kanji.map((kanji) => kanji.getVocabKanjiData());

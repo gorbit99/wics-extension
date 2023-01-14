@@ -8,7 +8,7 @@ import { fromSubject } from "./wanikani/fromSubject";
 export class StorageHandler {
   private static instance: StorageHandler;
 
-  private constructor() { }
+  private constructor() {}
 
   static getInstance(): StorageHandler {
     if (!StorageHandler.instance) {

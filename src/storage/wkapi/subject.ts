@@ -31,7 +31,6 @@ export async function fetchSubjects(ids?: number[]): Promise<WKSubject[]> {
       },
       lastUpdated
     );
-
     const updateRequest = await updateRequestPromise;
 
     const added = await updateItemCaches(updateRequest?.data ?? []);
@@ -88,8 +87,6 @@ async function updateItemCache(
 }
 
 async function getItemsFromCaches(ids: number[]): Promise<WKSubject[]> {
-  ids = ids.filter((id) => !localCache.has(id));
-
   const requiredCaches = ids
     .filter((id) => id > 0)
     .map((item) => Math.floor(item / individualCacheSize))

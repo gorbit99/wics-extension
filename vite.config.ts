@@ -32,6 +32,7 @@ export default defineConfig({
         "src/decks.ts",
         "src/options.ts",
       ],
+      browser: "firefox",
     }),
   ],
   build: {

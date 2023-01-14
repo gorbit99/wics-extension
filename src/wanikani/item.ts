@@ -86,6 +86,7 @@ export abstract class WKItem {
   }
 
   async updateData(data: Record<string, any>): Promise<void> {
+    console.log(data);
     for (const key in data) {
       if (key === "radicals") {
         const ids = await StorageHandler.getInstance().radicalsToIds(data[key]);

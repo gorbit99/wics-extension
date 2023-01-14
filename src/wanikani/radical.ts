@@ -127,7 +127,7 @@ export class WKRadicalItem extends WKItem {
   }
 
   async mapKanji(): Promise<WKRadicalKanji[]> {
-    const kanji = (await StorageHandler.getInstance().getItemsFromIds(
+    const kanji = (await StorageHandler.getInstance().getAllItemsFromIds(
       this.kanji
     )) as WKKanjiItem[];
     return kanji.map((kanji) => kanji.getRadicalKanjiData());

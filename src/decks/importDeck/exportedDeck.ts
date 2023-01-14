@@ -15,15 +15,19 @@ export function exportedDeckFields() {
   });
 }
 
-export function importExportedDeck(
+export async function importExportedDeck(
   parameters: ExportedDeckParameters
 ): Promise<CustomDeck> {
-  return new Promise((resolve) => {
-    JSZip.loadAsync(parameters.file).then(async (zip) => {
-      const data = await zip.file("deck.json")!.async("string");
-      const exportData = JSON.parse(data) as CustomDeckExportData;
-      const deck = CustomDeck.fromExportData(exportData);
-      resolve(deck);
-    });
+  const fileReader = new FileReader();
+  const file = await new Promise((resolve) => {
+    fileReader.onload = () => {
+      resolve(fileReader.result);
+    };
+    fileReader.readAsBinaryString(parameters.file);
   });
+  const zip = await JSZip.loadAsync(file as string);
+  const data = await zip.file("deck.json")!.async("string");
+  const exportData = JSON.parse(data) as CustomDeckExportData;
+  const deck = CustomDeck.fromExportData(exportData);
+  return deck;
 }

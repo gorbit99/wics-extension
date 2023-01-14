@@ -187,7 +187,7 @@ export class WKKanjiItem extends WKItem {
   }
 
   async mapRadicals(): Promise<WKKanjiRadical[]> {
-    const radicals = (await StorageHandler.getInstance().getItemsFromIds(
+    const radicals = (await StorageHandler.getInstance().getAllItemsFromIds(
       this.radicals
     )) as WKRadicalItem[];
     return radicals.map((radical) => {
@@ -196,7 +196,7 @@ export class WKKanjiItem extends WKItem {
   }
 
   async mapVocabulary(): Promise<WKKanjiVocabulary[]> {
-    const vocabulary = (await StorageHandler.getInstance().getItemsFromIds(
+    const vocabulary = (await StorageHandler.getInstance().getAllItemsFromIds(
       this.vocabulary
     )) as WKVocabularyItem[];
     return vocabulary.map((vocabulary) => {

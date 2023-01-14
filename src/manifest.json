@@ -47,11 +47,19 @@
     "src/monkeyPatching/jquery.js",
     "src/monkeyPatching/fetch.js"
   ],
-  "permissions": [
+  "{{chrome}}.permissions": [
     "unlimitedStorage",
     "storage",
     "tabs",
     "scripting",
     "activeTab"
+  ],
+  "{{firefox}}.permissions": [
+    "unlimitedStorage",
+    "storage",
+    "tabs",
+    "scripting",
+    "activeTab",
+    "https://api.wanikani.com/v2/*"
   ]
 }

@@ -14,6 +14,8 @@ export async function renderItemView(
   item: WKItem,
   decksRoot: HTMLElement
 ) {
+  console.log(item);
+
   const decksContent = decksRoot.querySelector(".popup-content") as HTMLElement;
   decksContent.innerHTML = itemViewHtml;
 
@@ -59,6 +61,7 @@ export async function renderItemView(
     );
     await promise;
     await StorageHandler.getInstance().updateDeck(deck.getName(), deck);
+    deck = (await StorageHandler.getInstance().getDeckByName(deck.getName()))!;
 
     saveButton.classList.remove("active");
   });
