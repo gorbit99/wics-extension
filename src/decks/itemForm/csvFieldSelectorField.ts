@@ -2,6 +2,7 @@ import { createErrorElement } from "./error";
 import { FieldInstance, FieldRenderer } from "./fields";
 import Papa from "papaparse";
 import { createItemContainer } from "./itemContainer";
+import { Config } from "../../config";
 
 export interface CsvFieldConstraints {
   requiredFields: string[];
@@ -9,13 +10,15 @@ export interface CsvFieldConstraints {
 
 export class CsvFieldSelectorFieldRenderer<
   Fields extends string
-> extends FieldRenderer<Record<Fields, string>> {
+> extends FieldRenderer<Record<Fields, number>> {
   constructor(
     name: string,
     private fileField: string,
     private separatorField: string,
     private possibleFields: Record<Fields, string>,
-    private constraints?: CsvFieldConstraints
+    private constraints?: CsvFieldConstraints,
+    private ignoreHashtagLines = true,
+    private defaultSeparator = ","
   ) {
     super(name);
   }
@@ -38,15 +41,17 @@ export class CsvFieldSelectorFieldRenderer<
       container,
       itemContainer,
       errorElement,
-      this.constraints
+      this.constraints,
+      this.ignoreHashtagLines,
+      this.defaultSeparator
     );
   }
 }
 
 export class CsvFieldSelectorFieldInstance<
   Fields extends string
-> extends FieldInstance<Record<Fields, string>> {
-  private selectedFields: Record<string, string> = {};
+> extends FieldInstance<Record<Fields, number>> {
+  private selectedFields: Record<string, number> = {};
 
   private separator: string = ",";
   private file: File | undefined;
@@ -59,16 +64,19 @@ export class CsvFieldSelectorFieldInstance<
     private container: HTMLElement,
     private itemContainer: HTMLElement,
     private errorElement: HTMLElement,
-    private constraints?: CsvFieldConstraints
+    private constraints?: CsvFieldConstraints,
+    private ignoreHashtagLines = true,
+    defaultSeparator = ","
   ) {
     super(name);
+    this.separator = defaultSeparator;
   }
 
   getHTML(): HTMLElement | HTMLElement[] | undefined {
     return this.container;
   }
 
-  getValue(): Record<string, string> {
+  getValue(): Record<string, number> {
     return this.selectedFields;
   }
 
@@ -94,33 +102,56 @@ export class CsvFieldSelectorFieldInstance<
     this.recreateOptions();
   }
 
-  private recreateOptions() {
+  private async recreateOptions() {
     this.itemContainer.innerHTML = "";
     if (!this.file) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const csvData = reader.result as string;
-      const lines = csvData.split("\n");
-      const headers = Papa.parse(lines[0]!, {
-        delimiter: this.separator,
-        skipEmptyLines: true,
-      }).data[0] as string[];
+    const csvFieldStyle = (await Config.getInstance().getConfig())
+      .csvImportFieldStyle;
 
-      headers.forEach((header) => {
-        const option = this.createOption(header);
-        this.itemContainer.append(option);
-      });
+    const getHeaders = (data: string[][]) => {
+      if (csvFieldStyle === "fieldName") {
+        const firstRows = data.slice(0, 3);
+        return firstRows[0]!
+          .map((_, i) => firstRows.map((row) => row[i]))
+          .map((col) => col.join(", "));
+      }
+      return data[0]?.map((_, i) => `Field ${i + 1}`);
     };
-    reader.readAsText(this.file);
+
+    const getHelperText = (data: string[][]) => {
+      if (csvFieldStyle === "fieldName") {
+        return data[0]?.map(() => undefined);
+      }
+      const firstRows = data.slice(0, 10);
+      return firstRows[0]!
+        .map((_, i) => firstRows.map((row) => row[i]))
+        .map((col) =>
+          col.join(csvFieldStyle === "hoverTextComma" ? "," : "\n")
+        );
+    };
+
+    Papa.parse(this.file, {
+      delimiter: this.separator,
+      skipEmptyLines: true,
+      ...(this.ignoreHashtagLines ? { comments: "#" } : {}),
+      complete: (results) => {
+        const headers = getHeaders(results.data as string[][])!;
+        const helperText = getHelperText(results.data as string[][])!;
+        (results.data as string[][])[0]!.forEach((_, id) => {
+          const option = this.createOption(headers[id]!, helperText[id], id);
+          this.itemContainer.append(option);
+        });
+      },
+    });
   }
 
   validate(): boolean {
     if (this.constraints?.requiredFields) {
       const missingFields = this.constraints.requiredFields.filter(
-        (field) => !this.selectedFields[field]
+        (field) => this.selectedFields[field] === undefined
       );
 
       if (missingFields.length > 0) {
@@ -136,8 +167,12 @@ export class CsvFieldSelectorFieldInstance<
     return true;
   }
 
-  private createOption(fieldName: string): HTMLElement {
-    const container = createItemContainer(fieldName);
+  private createOption(
+    fieldName: string,
+    helperText: string | undefined,
+    id: number
+  ): HTMLElement {
+    const container = createItemContainer(fieldName, helperText);
 
     const select = document.createElement("select");
     select.classList.add("item-form-dropdown");
@@ -158,7 +193,7 @@ export class CsvFieldSelectorFieldInstance<
       if (select.value === "none") {
         delete this.selectedFields[select.value];
       } else {
-        this.selectedFields[select.value] = fieldName;
+        this.selectedFields[select.value] = id;
       }
       this.notifyChange();
     });

@@ -39,9 +39,4 @@ export default defineConfig({
     minify: false,
     sourcemap: "inline",
   },
-  server: {
-    watch: {
-      usePolling: true,
-    },
-  },
 });

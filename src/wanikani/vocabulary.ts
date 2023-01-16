@@ -283,7 +283,7 @@ export class WKVocabularyItem extends WKItem {
   }
 
   getReadings(): string[] {
-    return this.getReadings();
+    return this.kana;
   }
 }
 

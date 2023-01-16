@@ -203,7 +203,6 @@ function handlePaginationSetup(decksRoot: HTMLElement, deck: CustomDeck) {
   ) as HTMLInputElement;
 
   filterInput.addEventListener("change", () => {
-    console.log(filterInput.value);
     filter = filterInput.value;
 
     items = deck

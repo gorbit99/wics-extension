@@ -18,6 +18,12 @@ const helpText = {
   clearBrowserStorage:
     "Clears all the data stored in your browser by this extensions. This " +
     "includes the API key, decks, and cached WK data.",
+  csvImportFieldStyle:
+    "The method with which the example fields will be displayed when " +
+    "importing a CSV or Anki deck. Field Name will display a few examples " +
+    "as the name of the field, while the Hover Text options display a " +
+    "generic field name, and put more examples into a hover text, separated " +
+    "by their specified character.",
 };
 
 export function setupHelpElements(optionsRoot: HTMLElement) {

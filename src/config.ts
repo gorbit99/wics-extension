@@ -4,12 +4,13 @@ import { ConfigData } from "./configData";
 const defaultConfig: ConfigData = {
   lessonPlacement: "back",
   reviewPlacement: "random",
+  csvImportFieldStyle: "fieldName",
 };
 
 export class Config {
   private static instance: Config;
 
-  private constructor() { }
+  private constructor() {}
 
   static getInstance(): Config {
     if (!Config.instance) {

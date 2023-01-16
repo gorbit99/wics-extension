@@ -314,7 +314,7 @@ export class WKKanjiItem extends WKItem {
   }
 
   getReadings(): string[] {
-    return this.getReadings();
+    return [...this.onyomi, ...this.kunyomi, ...this.nanori];
   }
 }
 

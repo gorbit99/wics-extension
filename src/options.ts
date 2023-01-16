@@ -71,6 +71,18 @@ async function initializeOptions(optionsRoot: HTMLElement) {
     config
   );
 
+  const csvImportFieldStyleOptionsSelect = optionsRoot.querySelector(
+    "#csvImportFieldStyle"
+  ) as HTMLSelectElement;
+  initializeOption(
+    csvImportFieldStyleOptionsSelect,
+    (value) => (csvImportFieldStyleOptionsSelect.value = value),
+    () =>
+      csvImportFieldStyleOptionsSelect.value as ConfigData["csvImportFieldStyle"],
+    "csvImportFieldStyle",
+    config
+  );
+
   const resetApiKeyButton = optionsRoot.querySelector(
     "#resetApiKey"
   ) as HTMLButtonElement;

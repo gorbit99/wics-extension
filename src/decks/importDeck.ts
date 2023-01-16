@@ -3,6 +3,7 @@ import { CustomDeck } from "../storage/customDeck";
 import { StorageHandler } from "../storageHandler";
 import { renderDeckList } from "./deckList";
 import importDeckHtml from "./importDeck.html?raw";
+import { ankiFields, importAnki } from "./importDeck/anki";
 import { csvFields, importCsv } from "./importDeck/csv";
 import {
   exportedDeckFields,
@@ -65,6 +66,10 @@ const forms = {
   csv: {
     form: csvFields,
     importer: importCsv,
+  },
+  anki: {
+    form: ankiFields,
+    importer: importAnki,
   },
 };
 

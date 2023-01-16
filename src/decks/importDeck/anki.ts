@@ -1,5 +1,4 @@
 import { CustomDeck } from "../../storage/customDeck";
-import { ConstantFieldRenderer } from "../itemForm/constantField";
 import { CsvFieldSelectorFieldRenderer } from "../itemForm/csvFieldSelectorField";
 import { FieldGroupRenderer } from "../itemForm/fields";
 import { FileFieldRenderer } from "../itemForm/fileField";
@@ -19,12 +18,9 @@ import { StorageHandler } from "../../storageHandler";
 import { fetchSubjects } from "../../storage/wkapi";
 import { fromSubject } from "../../wanikani/fromSubject";
 
-interface CsvParameters {
+interface AnkiParameters {
   deckName: string;
   file: File;
-  separator: string;
-  listSeparator: string;
-  hasHeader: boolean;
   itemTypes: "radical" | "kanji" | "vocabulary" | "field";
 
   fieldValues: Record<keyof typeof wkItemFields, number>;
@@ -55,15 +51,12 @@ const wkItemFields = {
   partsOfSpeech: "Parts of Speech",
 };
 
-export async function csvFields() {
-  return new FieldGroupRenderer<CsvParameters>({
+export async function ankiFields() {
+  return new FieldGroupRenderer<AnkiParameters>({
     deckName: new TextFieldRenderer("Deck Name", {
       minLength: 1,
     }),
-    file: new FileFieldRenderer("CSV file", { accept: "text/csv" }),
-    separator: new TextFieldRenderer("Separator"),
-    listSeparator: new TextFieldRenderer("List separator"),
-    hasHeader: new ConstantFieldRenderer(true),
+    file: new FileFieldRenderer("Anki file", { accept: ".txt" }),
     itemTypes: new SelectFieldRenderer("Item types", {
       radical: "Radicals",
       kanji: "Kanji",
@@ -77,32 +70,23 @@ export async function csvFields() {
       wkItemFields,
       {
         requiredFields: ["characters", "english"],
-      }
+      },
+      true,
+      "\t"
     ),
   });
 }
 
-export async function importCsv(
-  parameters: CsvParameters
+export async function importAnki(
+  parameters: AnkiParameters
 ): Promise<CustomDeck> {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = async () => {
-      const separator =
-        {
-          "\\t": "\t",
-          "": ",",
-        }[parameters.separator] ?? parameters.separator;
-
-      const listSeparator =
-        {
-          "\\t": "\t",
-          "": ",",
-        }[parameters.listSeparator] ?? parameters.listSeparator;
-
       const csvData = Papa.parse(reader.result as string, {
-        delimiter: separator,
+        delimiter: "\t",
         skipEmptyLines: true,
+        comments: "#",
       }).data as string[][];
 
       const fieldNames = parameters.fieldValues;
@@ -112,10 +96,6 @@ export async function importCsv(
 
       const user = await fetchUser();
       const deck = new CustomDeck(parameters.deckName, user.username);
-
-      if (parameters.hasHeader) {
-        csvData.shift();
-      }
 
       let nextId = await StorageHandler.getInstance().getNewId();
 
@@ -144,7 +124,6 @@ export async function importCsv(
             row,
             fieldIndices,
             nextId,
-            listSeparator,
             getIdFromCharacter
           );
           nextId++;
@@ -163,21 +142,19 @@ async function parseRow(
   row: string[],
   fieldIndices: Record<keyof typeof wkItemFields, number>,
   id: number,
-  listSeparator: string,
   getIdFromCharacter: (
     character: string,
     type: "radical" | "kanji" | "vocabulary"
   ) => number
 ): Promise<WKItem> {
-  const english = row[fieldIndices.english]!.split(listSeparator) as [
+  const english = row[fieldIndices.english]!.split(",") as [
     string,
     ...string[]
   ];
 
   const additionalMeanings =
-    row[fieldIndices.additionalMeanings]?.split(listSeparator) ?? [];
-  const blockedMeanings =
-    row[fieldIndices.blockedMeanings]?.split(listSeparator) ?? [];
+    row[fieldIndices.additionalMeanings]?.split(",") ?? [];
+  const blockedMeanings = row[fieldIndices.blockedMeanings]?.split(",") ?? [];
   const auxiliaryMeanings = additionalMeanings
     .map((meaning) => ({ meaning, type: "whitelist" }))
     .concat(
@@ -201,16 +178,16 @@ async function parseRow(
         },
         row[fieldIndices.meaningMnemonic] ?? "",
         row[fieldIndices.characterImageUrl] ?? null,
-        (row[fieldIndices.kanji]?.split(listSeparator) ?? []).map((character) =>
+        (row[fieldIndices.kanji]?.split(",") ?? []).map((character) =>
           getIdFromCharacter(character, "kanji")
         )
       );
     }
     case "kanji": {
       const additionalReadings =
-        row[fieldIndices.additionalReadings]?.split(listSeparator) ?? [];
+        row[fieldIndices.additionalReadings]?.split(",") ?? [];
       const blockedReadings =
-        row[fieldIndices.blockedReadings]?.split(listSeparator) ?? [];
+        row[fieldIndices.blockedReadings]?.split(",") ?? [];
       const auxiliaryReadings = additionalReadings
         .map((reading) => ({ reading, type: "whitelist" }))
         .concat(
@@ -221,9 +198,9 @@ async function parseRow(
         id,
         english,
         row[fieldIndices.characters]!,
-        row[fieldIndices.onyomi]?.split(listSeparator) ?? [],
-        row[fieldIndices.kunyomi]?.split(listSeparator) ?? [],
-        row[fieldIndices.nanori]?.split(listSeparator) ?? [],
+        row[fieldIndices.onyomi]?.split(",") ?? [],
+        row[fieldIndices.kunyomi]?.split(",") ?? [],
+        row[fieldIndices.nanori]?.split(",") ?? [],
         (row[fieldIndices.emphasis] as
           | "onyomi"
           | "kunyomi"
@@ -233,11 +210,11 @@ async function parseRow(
         row[fieldIndices.meaningHint] ?? "",
         row[fieldIndices.readingMnemonic] ?? "",
         row[fieldIndices.readingHint] ?? "",
-        (row[fieldIndices.radicals]?.split(listSeparator) ?? []).map(
-          (character) => getIdFromCharacter(character, "radical")
+        (row[fieldIndices.radicals]?.split(",") ?? []).map((character) =>
+          getIdFromCharacter(character, "radical")
         ),
-        (row[fieldIndices.vocabulary]?.split(listSeparator) ?? []).map(
-          (character) => getIdFromCharacter(character, "vocabulary")
+        (row[fieldIndices.vocabulary]?.split(",") ?? []).map((character) =>
+          getIdFromCharacter(character, "vocabulary")
         ),
         auxiliaryMeanings,
         auxiliaryReadings,
@@ -253,9 +230,9 @@ async function parseRow(
     }
     case "vocabulary": {
       const additionalReadings =
-        row[fieldIndices.additionalReadings]?.split(listSeparator) ?? [];
+        row[fieldIndices.additionalReadings]?.split(",") ?? [];
       const blockedReadings =
-        row[fieldIndices.blockedReadings]?.split(listSeparator) ?? [];
+        row[fieldIndices.blockedReadings]?.split(",") ?? [];
       const auxiliaryReadings = additionalReadings
         .map((reading) => ({ reading, type: "whitelist" }))
         .concat(
@@ -267,15 +244,15 @@ async function parseRow(
         english,
         row[fieldIndices.characters]!,
         [],
-        row[fieldIndices.kana]?.split(listSeparator) ?? [],
+        row[fieldIndices.kana]?.split(",") ?? [],
         row[fieldIndices.meaningMnemonic] ?? "",
         row[fieldIndices.readingMnemonic] ?? "",
-        (row[fieldIndices.kanji]?.split(listSeparator) ?? []).map((character) =>
+        (row[fieldIndices.kanji]?.split(",") ?? []).map((character) =>
           getIdFromCharacter(character, "kanji")
         ),
         [],
         [],
-        row[fieldIndices.partsOfSpeech]?.split(listSeparator) ?? [],
+        row[fieldIndices.partsOfSpeech]?.split(",") ?? [],
         auxiliaryMeanings,
         auxiliaryReadings,
         {
