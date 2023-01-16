@@ -82,6 +82,10 @@ extension for installation, run `vite build`. If everything went well, you can
 install the generated `dist` folder as an extension, and you should be ready to
 use WICS.
 
+To build the source code for Firefox, open up the `vite.config.ts` file and
+change the `browser` field to `"firefox"`. Afterwards running vite build will
+build the extension for firefox. Currently I don't think HMR works for Firefox.
+
 If you want to develop the extension, running `npm run dev` will open a browser
 window, free from your usual config, but with the extension already installed.
 It also reloads your extension automatically when you make changes.
