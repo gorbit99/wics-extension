@@ -3,18 +3,9 @@ import {
   AuxiliaryMeaning,
   WKRadicalItem,
   WKRelationship,
-  WKStudyMaterial,
 } from "../../wanikani";
-import { ComplexFieldRenderer } from "../itemForm/complexField";
-import { ConstantFieldRenderer } from "../itemForm/constantField";
-import { EditableMultilineFieldRenderer } from "../itemForm/editableMultiline";
-import { EditableValueFieldRenderer } from "../itemForm/editableValue";
+import { generateForm, ItemFormConfig } from "../itemForm/factory";
 import { FieldGroupRenderer } from "../itemForm/fields";
-import { GroupedListFieldRenderer } from "../itemForm/groupedListField";
-import { ListFieldRenderer } from "../itemForm/listField";
-import { MultiLineFieldRenderer } from "../itemForm/multilineField";
-import { SelectFieldRenderer } from "../itemForm/selectField";
-import { TextFieldRenderer } from "../itemForm/textField";
 
 export type Radical = {
   characters: string;
@@ -25,75 +16,153 @@ export type Radical = {
   relationships: WKRelationship;
 };
 
-const radicalInputFields: FieldGroupRenderer<Radical> = new FieldGroupRenderer({
-  characters: new TextFieldRenderer("Radical", 1, 1),
-  english: new ListFieldRenderer(
-    "English",
-    { minLength: 1, type: "latin" },
-    1,
-    undefined,
-    true
-  ),
-  kanji: new ListFieldRenderer("Kanji", { minLength: 1, maxLength: 1 }),
-  meaningMnemonic: new MultiLineFieldRenderer("Meaning Mnemonic"),
-  auxiliaryMeanings: new GroupedListFieldRenderer(
-    "Auxiliary Meanings",
-    new FieldGroupRenderer<AuxiliaryMeaning>({
-      meaning: new TextFieldRenderer("Meaning", 1, undefined, "latin"),
-      type: new SelectFieldRenderer("Type", {
-        whitelist: "Allow",
-        blacklist: "Deny",
-      }),
-    })
-  ),
-  relationships: new ConstantFieldRenderer<WKRelationship>({
-    study_material: {
-      id: 0,
-      meaning_note: "",
-      reading_note: "",
-      meaning_synonyms: [],
-    },
-  }),
-});
+const helpText = {
+  radical:
+    "The radical itself. This should be a single character. Image " +
+    "radicals aren't supported yet.",
+  english:
+    "The names of the radical. This will be what needs to be input to pass" +
+    "the review.",
+  kanji: "The kanji that use this radical.",
+  meaningMnemonic: "The mnemonic for the meaning of the radical.",
+  auxiliaryMeanings:
+    "Auxiliary meanings are meanings that are either not shown but accepted " +
+    "as a valid answer, or they are explicitly disallowed.",
+  auxiliaryMeaningsMeaning:
+    "The meaning you want to either accept or disallow.",
+  auxiliaryMeaningsType: "Whether you want to accept or disallow the meaning.",
+  relationshipsMeaningNote:
+    "This is your personal modification to the meaning mnemonic of the " +
+    "radical. It can be used as a helpful reminder, or to clarify the meaning.",
+  relationshipsMeaningSynonyms: "Your personal synonyms for the radical.",
+};
 
-const radicalViewFields: FieldGroupRenderer<Radical> = new FieldGroupRenderer({
-  characters: new EditableValueFieldRenderer("Radical", 1, 1),
-  english: new ListFieldRenderer(
-    "English",
-    { minLength: 1, type: "latin" },
-    1,
-    undefined,
-    true
-  ),
-  kanji: new ListFieldRenderer("Kanji", { minLength: 1, maxLength: 1 }),
-  meaningMnemonic: new EditableMultilineFieldRenderer("Meaning Mnemonic"),
-  auxiliaryMeanings: new GroupedListFieldRenderer(
-    "Auxiliary Meanings",
-    new FieldGroupRenderer<AuxiliaryMeaning>({
-      meaning: new EditableValueFieldRenderer("Meaning", 1, undefined, "latin"),
-      type: new SelectFieldRenderer("Type", {
-        whitelist: "Allow",
-        blacklist: "Deny",
-      }),
-    })
-  ),
-  relationships: new ComplexFieldRenderer<WKRelationship>(
-    new FieldGroupRenderer<Required<WKRelationship>>({
-      study_material: new ComplexFieldRenderer(
-        new FieldGroupRenderer<WKStudyMaterial>({
-          id: new ConstantFieldRenderer<number>(0),
-          meaning_note: new EditableValueFieldRenderer("Meaning Note", 0),
-          reading_note: new EditableValueFieldRenderer("Reading Note", 0),
-          meaning_synonyms: new ListFieldRenderer(
-            "Meaning Synonyms",
-            { minLength: 1, type: "latin" },
-            0
-          ),
-        })
-      ),
-    })
-  ),
-});
+const radicalFormConfig: ItemFormConfig<Radical> = {
+  characters: {
+    type: "text",
+    name: "Radical",
+    constraints: {
+      minLength: 1,
+      maxLength: 1,
+    },
+    helpText: helpText.radical,
+  },
+  english: {
+    type: "list",
+    name: "Meanings",
+    constraints: {
+      minOptions: 1,
+      innerFieldConstraints: {
+        minLength: 1,
+        type: "latin",
+      },
+    },
+    helpText: helpText.english,
+  },
+  kanji: {
+    type: "list",
+    name: "Kanji",
+    constraints: {
+      innerFieldConstraints: {
+        minLength: 1,
+        type: "kanji",
+      },
+    },
+    helpText: helpText.kanji,
+  },
+  meaningMnemonic: {
+    type: "multiLine",
+    name: "Meaning Mnemonic",
+    helpText: helpText.meaningMnemonic,
+  },
+  auxiliaryMeanings: {
+    type: "groupedList",
+    name: "Auxiliary Meanings",
+    fields: {
+      meaning: {
+        type: "text",
+        name: "Meaning",
+        constraints: {
+          minLength: 1,
+          type: "latin",
+        },
+        helpText: helpText.auxiliaryMeaningsMeaning,
+      },
+      type: {
+        type: "select",
+        name: "Type",
+        options: {
+          whitelist: "Allow",
+          blacklist: "Deny",
+        },
+        helpText: helpText.auxiliaryMeaningsType,
+      },
+    },
+    helpText: helpText.auxiliaryMeanings,
+  },
+  relationships: {
+    type: "complex",
+    name: "Relationships",
+    fields: {
+      study_material: {
+        type: "choice",
+        name: "Study Material",
+        formField: {
+          type: "constant",
+          name: "Study Material",
+          value: {
+            id: 0,
+            meaning_note: "",
+            reading_note: "",
+            meaning_synonyms: [],
+          },
+        },
+        dataViewField: {
+          type: "complex",
+          name: "Study Material",
+          fields: {
+            id: {
+              type: "constant",
+              name: "ID",
+              value: 0,
+            },
+            meaning_note: {
+              type: "text",
+              name: "Meaning Note",
+              helpText: helpText.relationshipsMeaningNote,
+            },
+            reading_note: {
+              type: "text",
+              name: "Reading Note",
+              helpText: helpText.relationshipsMeaningNote,
+            },
+            meaning_synonyms: {
+              type: "list",
+              name: "Meaning Synonyms",
+              constraints: {
+                innerFieldConstraints: {
+                  minLength: 1,
+                  type: "latin",
+                },
+              },
+              helpText: helpText.relationshipsMeaningSynonyms,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+const radicalInputFields: FieldGroupRenderer<Radical> = generateForm(
+  radicalFormConfig,
+  "form"
+);
+
+const radicalViewFields: FieldGroupRenderer<Radical> = generateForm(
+  radicalFormConfig,
+  "dataView"
+);
 
 export async function convertToRadical(
   values: Record<string, any>

@@ -1,0 +1,47 @@
+.deck-view-list-pagination {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 0.5em;
+  align-items: center;
+}
+
+.deck-view-pagination-buttons {
+  display: flex;
+  flex-direction: row;
+
+  .deck-view-pagination-button {
+    width: 3em;
+    border-radius: 0;
+  }
+
+  .deck-view-pagination-button:first-of-type {
+    border-top-left-radius: 0.5em;
+    border-bottom-left-radius: 0.5em;
+  }
+
+  .deck-view-pagination-button:last-of-type {
+    border-top-right-radius: 0.5em;
+    border-bottom-right-radius: 0.5em;
+  }
+}
+
+.deck-view-pagination-info {
+  color: var(--text-color);
+  user-select: none;
+  font-size: 0.75em;
+
+  .deck-view-pagination-info-count {
+    margin: 0.25em;
+  }
+}
+
+.deck-view-pagination-config {
+  color: var(--text-color);
+  font-size: 0.75em;
+  user-select: none;
+
+  .deck-view-pagination-per-page {
+    width: 5em;
+  }
+}

@@ -312,6 +312,10 @@ export class WKKanjiItem extends WKItem {
       }
     );
   }
+
+  getReadings(): string[] {
+    return this.getReadings();
+  }
 }
 
 export interface WKKanjiReviewItem extends WKReviewItem {

@@ -1,18 +1,25 @@
 import { createErrorElement } from "./error";
 import { FieldInstance, FieldRenderer } from "./fields";
+import { createItemContainer } from "./itemContainer";
 import { validateLength, validateTextType } from "./validation";
+
+export interface ListFieldConstraints {
+  minOptions?: number;
+  maxOptions?: number;
+  reorderable?: boolean;
+  allowDuplicates?: boolean;
+  innerFieldConstraints?: {
+    minLength?: number;
+    maxLength?: number;
+    type?: "latin" | "kana" | "kanji" | "japanese";
+  };
+}
 
 export class ListFieldRenderer extends FieldRenderer<string[]> {
   constructor(
     name: string,
-    private innerFieldConstraints: {
-      minLength?: number;
-      maxLength?: number;
-      type?: "any" | "kana" | "japanese" | "latin";
-    } = {},
-    private minOptions?: number,
-    private maxOptions?: number,
-    private reorderable: boolean = false
+    private constraints: ListFieldConstraints = {},
+    private helpText?: string
   ) {
     super(name);
   }
@@ -21,10 +28,8 @@ export class ListFieldRenderer extends FieldRenderer<string[]> {
     return new ListFieldInstance(
       this.name,
       value,
-      this.reorderable,
-      this.minOptions,
-      this.maxOptions,
-      this.innerFieldConstraints
+      this.constraints,
+      this.helpText
     );
   }
 }
@@ -39,26 +44,14 @@ export class ListFieldInstance extends FieldInstance<string[]> {
   constructor(
     name: string,
     value?: string[],
-    private reorderable: boolean = false,
-    private minOptions?: number,
-    private maxOptions?: number,
-    private innerFieldConstraints?: {
-      minLength?: number;
-      maxLength?: number;
-      type?: "any" | "kana" | "japanese" | "latin";
-    }
+    private constraints: ListFieldConstraints = {},
+    helpText?: string
   ) {
     super(name);
 
     this.hadDefaultValue = value != undefined;
 
-    this.container = document.createElement("div");
-    this.container.classList.add("item-option-container");
-
-    const label = document.createElement("label");
-    label.classList.add("item-option-label");
-    label.textContent = this.name;
-    this.container.append(label);
+    this.container = createItemContainer(name, helpText);
 
     this.newButton = document.createElement("button");
     this.newButton.classList.add("item-form-list-new-button", "button");
@@ -74,7 +67,7 @@ export class ListFieldInstance extends FieldInstance<string[]> {
     this.list.classList.add("item-form-list-option-list");
     this.list.append(this.newButton);
 
-    if (this.reorderable) {
+    if (this.constraints.reorderable) {
       this.list.classList.add("item-form-reorderable");
     }
 
@@ -128,12 +121,13 @@ export class ListFieldInstance extends FieldInstance<string[]> {
 
   validate(): boolean {
     if (
-      this.minOptions &&
+      this.constraints.minOptions &&
       this.list.querySelectorAll(".item-form-list-value").length <
-      this.minOptions
+        this.constraints.minOptions
     ) {
-      this.errorElement.textContent = `At least ${this.minOptions} value${this.minOptions === 1 ? "" : "s"
-        } required`;
+      this.errorElement.textContent = `At least ${
+        this.constraints.minOptions
+      } value${this.constraints.minOptions === 1 ? "" : "s"} required`;
       return false;
     }
 
@@ -142,12 +136,12 @@ export class ListFieldInstance extends FieldInstance<string[]> {
       const error =
         validateLength(
           element.textContent ?? "",
-          this.minOptions,
-          this.maxOptions
+          this.constraints.minOptions,
+          this.constraints.maxOptions
         ) ??
         validateTextType(
           element.textContent ?? "",
-          this.innerFieldConstraints?.type
+          this.constraints.innerFieldConstraints?.type
         );
       if (error) {
         anyError = true;
@@ -173,9 +167,10 @@ export class ListFieldInstance extends FieldInstance<string[]> {
         const error =
           validateLength(
             value,
-            this.innerFieldConstraints?.minLength,
-            this.innerFieldConstraints?.maxLength
-          ) ?? validateTextType(value, this.innerFieldConstraints?.type);
+            this.constraints.innerFieldConstraints?.minLength,
+            this.constraints.innerFieldConstraints?.maxLength
+          ) ??
+          validateTextType(value, this.constraints.innerFieldConstraints?.type);
         this.errorElement.textContent = error ?? "";
         if (error) {
           inputField.focus();
@@ -227,7 +222,7 @@ export class ListFieldInstance extends FieldInstance<string[]> {
     newValue.dataset["value"] = value;
     newValue.append(removeButton);
 
-    if (this.reorderable) {
+    if (this.constraints.reorderable) {
       newValue.draggable = true;
       newValue.addEventListener("dragstart", (event) => {
         event.dataTransfer!.effectAllowed = "move";
@@ -266,11 +261,17 @@ export class ListFieldInstance extends FieldInstance<string[]> {
     }
     const values = this.getValue();
     const minReached =
-      this.minOptions !== undefined && values.length <= this.minOptions;
+      this.constraints.minOptions !== undefined &&
+      values.length <= this.constraints.minOptions;
     const maxReached =
-      this.maxOptions !== undefined && values.length >= this.maxOptions;
+      this.constraints.maxOptions !== undefined &&
+      values.length >= this.constraints.maxOptions;
 
     this.list.classList.toggle("item-form-list-min-reached", minReached);
     this.list.classList.toggle("item-form-list-max-reached", maxReached);
+  }
+
+  setErrorMessage(message: string) {
+    this.errorElement.textContent = message;
   }
 }

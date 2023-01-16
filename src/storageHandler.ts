@@ -17,11 +17,16 @@ export class StorageHandler {
     return StorageHandler.instance;
   }
 
+  private customDeckCache: Map<string, CustomDeck> = new Map();
+
   async getCustomDecks(): Promise<CustomDeck[]> {
     const database = await browser.storage.local.get("customDecks");
     const decks = database.customDecks ?? [];
     decks.forEach((deck: CustomDeck) => {
       CustomDeck.hydrate(deck);
+    });
+    decks.forEach((deck: CustomDeck) => {
+      this.customDeckCache.set(deck.getName(), deck);
     });
     return decks;
   }
@@ -29,6 +34,7 @@ export class StorageHandler {
   async addNewDeck(deck: CustomDeck): Promise<void> {
     const decks = await this.getCustomDecks();
     decks.push(deck);
+    this.customDeckCache.set(deck.getName(), deck);
     await browser.storage.local.set({ customDecks: decks });
   }
 
@@ -142,6 +148,9 @@ export class StorageHandler {
   }
 
   async getDeckByName(name: string): Promise<CustomDeck | undefined> {
+    if (this.customDeckCache.has(name)) {
+      return this.customDeckCache.get(name);
+    }
     const decks = await this.getCustomDecks();
     return decks.find((deck) => deck.getName() === name);
   }
@@ -150,6 +159,7 @@ export class StorageHandler {
     const decks = await this.getCustomDecks();
     const index = decks.findIndex((deck) => deck.getName() === originalName);
     decks[index] = value;
+    this.customDeckCache.set(value.getName(), value);
     await browser.storage.local.set({ customDecks: decks });
   }
 
@@ -168,6 +178,7 @@ export class StorageHandler {
     const decks = await this.getCustomDecks();
     const index = decks.findIndex((deck) => deck.getName() === name);
     decks.splice(index, 1);
+    this.customDeckCache.delete(name);
     await browser.storage.local.set({ customDecks: decks });
   }
 

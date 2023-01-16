@@ -3,8 +3,8 @@ import { CustomDeck } from "../storage/customDeck";
 import { StorageHandler } from "../storageHandler";
 import { WKItem } from "../wanikani";
 import { renderDeckView } from "./deckView";
-import { setupButtonGroup } from "./itemForm/buttonGroup";
 import { FieldGroupInstance } from "./itemForm/fields";
+import { SelectFieldRenderer } from "./itemForm/selectField";
 import newItemHtml from "./newItem.html?raw";
 import { convertToKanji, kanjiInputFields } from "./newItem/kanji";
 import { convertToRadical, radicalInputFields } from "./newItem/radical";
@@ -17,9 +17,25 @@ export async function renderNewItem(deck: CustomDeck, decksRoot: HTMLElement) {
   const decksContent = decksRoot.querySelector(".popup-content") as HTMLElement;
   decksContent.innerHTML = newItemHtml;
 
-  decksRoot
-    .querySelectorAll(".item-button-group")
-    .forEach((buttonGroup) => setupButtonGroup(buttonGroup as HTMLElement));
+  const optionsContainer = decksContent.querySelector(
+    ".new-item-options-container"
+  );
+
+  const typeSelector = await new SelectFieldRenderer(
+    "Type",
+    {
+      radical: "Radical",
+      kanji: "Kanji",
+      vocabulary: "Vocabulary",
+    },
+    "The type of the item you're creating. The input fields depend on what " +
+      "you want to make, so choose this first!"
+  ).render();
+
+  optionsContainer?.insertBefore(
+    typeSelector.getHTML(),
+    optionsContainer.firstElementChild!
+  );
 
   const options = decksRoot.querySelector(
     ".new-item-item-options"
@@ -34,26 +50,22 @@ export async function renderNewItem(deck: CustomDeck, decksRoot: HTMLElement) {
   let converter: (values: Record<string, any>) => Promise<WKItem> =
     convertToRadical;
 
-  decksRoot
-    .querySelector(".new-item-type-select [data-type='radical']")
-    ?.addEventListener("click", () => {
-      [getValue, validate] = renderInstance(options, radicalGroupInstance);
-      converter = convertToRadical;
-    });
-
-  decksRoot
-    .querySelector(".new-item-type-select [data-type='kanji']")
-    ?.addEventListener("click", () => {
-      [getValue, validate] = renderInstance(options, kanjiGroupInstance);
-      converter = convertToKanji;
-    });
-
-  decksRoot
-    .querySelector(".new-item-type-select [data-type='vocabulary']")
-    ?.addEventListener("click", () => {
-      [getValue, validate] = renderInstance(options, vocabularyGroupInstance);
-      converter = convertToVocabulary;
-    });
+  typeSelector.onChange((value) => {
+    switch (value) {
+      case "radical":
+        [getValue, validate] = renderInstance(options, radicalGroupInstance);
+        converter = convertToRadical;
+        break;
+      case "kanji":
+        [getValue, validate] = renderInstance(options, kanjiGroupInstance);
+        converter = convertToKanji;
+        break;
+      case "vocabulary":
+        [getValue, validate] = renderInstance(options, vocabularyGroupInstance);
+        converter = convertToVocabulary;
+        break;
+    }
+  });
 
   decksRoot
     .querySelector(".new-item-save")

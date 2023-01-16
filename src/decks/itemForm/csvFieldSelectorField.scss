@@ -1,0 +1,11 @@
+.item-form-csv-field-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5em;
+  margin: 0.5em 0;
+}
+
+.item-form-dropdown {
+  flex: 1 1 auto;
+}

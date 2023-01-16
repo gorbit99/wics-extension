@@ -14,8 +14,6 @@ export async function renderItemView(
   item: WKItem,
   decksRoot: HTMLElement
 ) {
-  console.log(item);
-
   const decksContent = decksRoot.querySelector(".popup-content") as HTMLElement;
   decksContent.innerHTML = itemViewHtml;
 

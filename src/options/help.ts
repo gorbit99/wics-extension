@@ -1,3 +1,5 @@
+import { setupHelpHover } from "../components/helpText";
+
 const helpText = {
   lessonPlacement:
     "Where the lessons get placed in the queue. Back places the lessons at " +
@@ -19,55 +21,15 @@ const helpText = {
 };
 
 export function setupHelpElements(optionsRoot: HTMLElement) {
-  const helpHoverTemplate = optionsRoot.querySelector(
-    ".options-help-hover-template"
-  ) as HTMLTemplateElement;
-
-  const helpHover = helpHoverTemplate.content.firstElementChild!.cloneNode(
-    true
-  ) as HTMLElement;
-
-  optionsRoot.append(helpHover);
-
   const helpElements = [
-    ...optionsRoot.querySelectorAll(".options-input-help"),
+    ...optionsRoot.querySelectorAll(".input-help-circle"),
   ] as HTMLElement[];
 
   helpElements.forEach((helpElement) => {
-    helpElement.addEventListener("mouseover", (event) => {
-      const text =
-        helpText[helpElement.dataset["help"] as keyof typeof helpText];
-      if (!text) {
-        return;
-      }
-
-      const targetRect = (event.target as HTMLElement).getBoundingClientRect();
-      const targetCenterX = targetRect.left + targetRect.width / 2;
-      const targetCenterY = targetRect.top + targetRect.height / 2;
-
-      helpHover.innerHTML = text;
-      helpHover.style.display = "block";
-
-      const helpHoverRect = helpHover.getBoundingClientRect();
-
-      if (targetCenterY + helpHoverRect.height > window.innerHeight) {
-        helpHover.style.bottom = `${window.innerHeight - targetCenterY}px`;
-        helpHover.style.top = "auto";
-      } else {
-        helpHover.style.top = `${targetCenterY}px`;
-        helpHover.style.bottom = "auto";
-      }
-      if (targetCenterX + helpHoverRect.width > window.innerWidth) {
-        helpHover.style.right = `${window.innerWidth - targetCenterX}px`;
-        helpHover.style.left = "auto";
-      } else {
-        helpHover.style.left = `${targetCenterX}px`;
-        helpHover.style.right = "auto";
-      }
-    });
-
-    helpElement.addEventListener("mouseout", () => {
-      helpHover.style.display = "none";
-    });
+    const text = helpText[helpElement.dataset["help"] as keyof typeof helpText];
+    if (!text) {
+      return;
+    }
+    setupHelpHover(helpElement, text);
   });
 }

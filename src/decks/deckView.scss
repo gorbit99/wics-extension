@@ -1,3 +1,5 @@
+@use "./deckView/pagination.scss";
+
 @import "src/components/mixins.scss";
 
 .deck-view-header {
@@ -47,13 +49,21 @@
   }
 }
 
+.deck-view-list-container {
+  width: 90%;
+  margin: 0.5em auto;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .deck-view-item-list {
   @include has-border(primary);
 
   display: flex;
   flex-direction: column;
-  width: 90%;
-  margin: 0.5em auto;
+  width: 100%;
   flex-grow: 1;
   overflow: hidden;
 
@@ -153,4 +163,13 @@
   padding: 0.5em;
   border-top: 1px solid var(--primary-border-color);
   box-shadow: 0 0 0.25em var(--shadow-color);
+}
+
+.deck-view-list-header {
+  padding: 0.5em;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  color: var(--text-color);
+  align-items: center;
 }

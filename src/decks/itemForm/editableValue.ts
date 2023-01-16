@@ -1,28 +1,28 @@
 import { createErrorElement } from "../itemForm/error";
 import { validateLength, validateTextType } from "../itemForm/validation";
 import { FieldInstance, FieldRenderer } from "./fields";
+import { createItemContainer } from "./itemContainer";
+
+interface EditableValueFieldConstraints {
+  minLength?: number;
+  maxLength?: number;
+  type?: "kana" | "japanese" | "latin" | "kanji";
+}
 
 export class EditableValueFieldRenderer extends FieldRenderer<string> {
   constructor(
     name: string,
-    private minLength?: number,
-    private maxLength?: number,
-    private type: "any" | "kana" | "japanese" | "latin" = "any"
+    private constraints: EditableValueFieldConstraints = {},
+    private helpText?: string
   ) {
     super(name);
   }
 
   async render(value?: string): Promise<EditableValueFieldInstance> {
-    const optionContainer = document.createElement("div");
-    optionContainer.classList.add("item-option-container");
+    const optionContainer = createItemContainer(this.name, this.helpText);
 
     const valueContainer = document.createElement("div");
     valueContainer.classList.add("item-option-value-container");
-
-    const label = document.createElement("label");
-    label.classList.add("item-option-label");
-    label.textContent = this.name;
-    optionContainer.append(label);
 
     const valueElement = document.createElement("span");
     valueElement.classList.add("item-option-value", "editable");
@@ -42,9 +42,7 @@ export class EditableValueFieldRenderer extends FieldRenderer<string> {
       valueElement,
       optionContainer,
       errorElement,
-      this.minLength,
-      this.maxLength,
-      this.type
+      this.constraints
     );
   }
 }
@@ -55,9 +53,7 @@ export class EditableValueFieldInstance extends FieldInstance<string> {
     private valueElement: HTMLElement,
     private container: HTMLElement,
     private errorElement: HTMLElement,
-    private minLength?: number,
-    private maxLength?: number,
-    private type: "any" | "kana" | "japanese" | "latin" = "any"
+    private constraints: EditableValueFieldConstraints = {}
   ) {
     super(name);
 
@@ -77,8 +73,11 @@ export class EditableValueFieldInstance extends FieldInstance<string> {
   validate(): boolean {
     const value = this.valueElement.textContent ?? "";
     const error =
-      validateLength(value, this.minLength, this.maxLength) ??
-      validateTextType(value, this.type);
+      validateLength(
+        value,
+        this.constraints.minLength,
+        this.constraints.maxLength
+      ) ?? validateTextType(value, this.constraints.type);
     this.errorElement.textContent = error ?? "";
     return !error;
   }
@@ -92,8 +91,11 @@ export class EditableValueFieldInstance extends FieldInstance<string> {
       const value = input.value;
 
       const error =
-        validateLength(value, this.minLength, this.maxLength) ??
-        validateTextType(value, this.type);
+        validateLength(
+          value,
+          this.constraints.minLength,
+          this.constraints.maxLength
+        ) ?? validateTextType(value, this.constraints.type);
       if (error) {
         this.errorElement.textContent = error;
         input.focus();
@@ -118,5 +120,9 @@ export class EditableValueFieldInstance extends FieldInstance<string> {
 
     this.valueElement.replaceWith(input);
     input.focus();
+  }
+
+  setErrorMessage(message: string) {
+    this.errorElement.textContent = message;
   }
 }

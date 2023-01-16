@@ -1,21 +1,23 @@
 import { setupButtonGroup } from "./buttonGroup";
+import { createErrorElement } from "./error";
 import { FieldInstance, FieldRenderer } from "./fields";
+import { createItemContainer } from "./itemContainer";
 
 export class SelectFieldRenderer<
   Value extends string
 > extends FieldRenderer<Value> {
-  constructor(name: string, private options: Record<Value, string>) {
+  constructor(
+    name: string,
+    private options: Record<Value, string>,
+    private helpText?: string
+  ) {
     super(name);
   }
 
   async render(value?: Value): Promise<SelectFieldInstance<Value>> {
-    const optionContainer = document.createElement("div");
-    optionContainer.classList.add("item-option-container");
+    const optionContainer = createItemContainer(this.name, this.helpText);
 
-    const label = document.createElement("label");
-    label.classList.add("item-option-label");
-    label.textContent = this.name;
-    optionContainer.append(label);
+    const errorElement = createErrorElement();
 
     const valueContainer = document.createElement("div");
     valueContainer.classList.add("item-option-value-container");
@@ -40,7 +42,12 @@ export class SelectFieldRenderer<
 
     optionContainer.append(valueContainer);
 
-    return new SelectFieldInstance(this.name, buttonGroup, optionContainer);
+    return new SelectFieldInstance(
+      this.name,
+      buttonGroup,
+      optionContainer,
+      errorElement
+    );
   }
 }
 
@@ -50,7 +57,8 @@ export class SelectFieldInstance<
   constructor(
     name: string,
     private buttonGroup: HTMLElement,
-    private container: HTMLElement
+    private container: HTMLElement,
+    private errorElement: HTMLElement
   ) {
     super(name);
     setupButtonGroup(this.buttonGroup, () => this.notifyChange());
@@ -69,5 +77,9 @@ export class SelectFieldInstance<
 
   validate(): boolean {
     return true;
+  }
+
+  setErrorMessage(message: string) {
+    this.errorElement.textContent = message;
   }
 }

@@ -1,19 +1,14 @@
 import { createErrorElement } from "../itemForm/error";
 import { FieldInstance, FieldRenderer } from "./fields";
+import { createItemContainer } from "./itemContainer";
 
 export class EditableMultilineFieldRenderer extends FieldRenderer<string> {
-  constructor(name: string) {
+  constructor(name: string, private helpText?: string) {
     super(name);
   }
 
   async render(value?: string): Promise<FieldInstance<string>> {
-    const optionContainer = document.createElement("div");
-    optionContainer.classList.add("item-option-container");
-
-    const label = document.createElement("label");
-    label.classList.add("item-option-label");
-    label.textContent = this.name;
-    optionContainer.append(label);
+    const optionContainer = createItemContainer(this.name, this.helpText);
 
     const valueContainer = document.createElement("div");
     valueContainer.classList.add("item-option-value-container");
@@ -57,7 +52,7 @@ export class EditableMultilineFieldInstance extends FieldInstance<string> {
 
   private createInputElement() {
     const input = document.createElement("textarea");
-    input.classList.add("item-option-value-input");
+    input.classList.add("item-form-multiline-input");
     input.value = this.valueElement.textContent || "";
 
     const errorElement = createErrorElement();

@@ -1,13 +1,20 @@
-type FieldGroupRendererFields<InputObject> = {
+export type FieldGroupRendererFields<InputObject> = {
   [key in keyof InputObject]: FieldRenderer<InputObject[key]>;
 };
 
 type FieldGroupInstanceFields<InputObject> = {
-  [key in keyof InputObject]: FieldRenderer<InputObject[key]>;
+  [key in keyof InputObject]: FieldInstance<InputObject[key]>;
 };
 
+interface FieldGroupConstraints<T extends Record<string, unknown>> {
+  validationCallback?: (value: T) => Partial<Record<keyof T, string>>;
+}
+
 export class FieldGroupRenderer<T extends Record<string, any>> {
-  constructor(private fields: FieldGroupRendererFields<T>) { }
+  constructor(
+    private fields: FieldGroupRendererFields<T>,
+    private constraints: FieldGroupConstraints<T> = {}
+  ) {}
 
   async render(
     value?: T | ((key: keyof T) => T[typeof key] | Promise<T[typeof key]>)
@@ -23,7 +30,7 @@ export class FieldGroupRenderer<T extends Record<string, any>> {
       )
     );
 
-    return new FieldGroupInstance<T>(fields as FieldGroupInstanceFields<T>);
+    return new FieldGroupInstance<T>(fields, this.constraints);
   }
 }
 
@@ -33,7 +40,10 @@ type OnChangeCallback<T extends Record<string, any>, Key extends keyof T> = (
 ) => void;
 
 export class FieldGroupInstance<T extends Record<string, any>> {
-  constructor(private fields: FieldGroupInstanceFields<T>) {
+  constructor(
+    private fields: FieldGroupInstanceFields<T>,
+    private constraints: FieldGroupConstraints<T>
+  ) {
     Object.entries(this.fields).forEach(([key, field]) => {
       field.onChange((value: T[typeof key]) =>
         this.notifyChange(key as keyof T, value)
@@ -56,9 +66,30 @@ export class FieldGroupInstance<T extends Record<string, any>> {
   }
 
   validate(): boolean {
-    return Object.values(this.fields)
-      .map((field) => field.validate())
-      .every((v) => v);
+    if (
+      !Object.values(this.fields)
+        .map((field) => field.validate())
+        .every((v) => v)
+    ) {
+      return false;
+    }
+
+    const value = this.getValue();
+    const validationErrors = this.constraints.validationCallback?.(value);
+    if (!validationErrors) {
+      return true;
+    }
+
+    const entries = Object.entries(validationErrors) as [keyof T, string][];
+
+    if (entries.length === 0) {
+      return true;
+    }
+
+    entries.forEach(([key, message]) => {
+      this.fields[key].setErrorMessage(message);
+    });
+    return false;
   }
 
   onChange(callback: OnChangeCallback<T, keyof T>) {
@@ -74,13 +105,13 @@ export class FieldGroupInstance<T extends Record<string, any>> {
 }
 
 export abstract class FieldRenderer<Type> {
-  constructor(protected name: string) { }
+  constructor(protected name: string) {}
 
   abstract render(value?: Type): Promise<FieldInstance<Type>>;
 }
 
 export abstract class FieldInstance<Type> {
-  constructor(protected name: string) { }
+  constructor(protected name: string) {}
 
   private onChangeListeners: ((value: Type) => void | Promise<void>)[] = [];
 
@@ -96,5 +127,7 @@ export abstract class FieldInstance<Type> {
     this.onChangeListeners.forEach((listener) => listener(this.getValue()));
   }
 
-  protected parentChanged(_field: string, _value: any) { }
+  protected parentChanged(_field: string, _value: any) {}
+
+  public setErrorMessage(_message: string) {}
 }

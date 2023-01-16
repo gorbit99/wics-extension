@@ -1,25 +1,20 @@
 import { createErrorElement } from "./error";
 import { FieldInstance, FieldRenderer } from "./fields";
+import { createItemContainer } from "./itemContainer";
 
 export class MultiLineFieldRenderer extends FieldRenderer<string> {
-  constructor(name: string) {
+  constructor(name: string, private helpText?: string) {
     super(name);
   }
 
   async render(value?: string): Promise<MultiLineFieldInstance> {
-    const optionContainer = document.createElement("div");
-    optionContainer.classList.add("item-option-container");
-
-    const label = document.createElement("label");
-    label.classList.add("item-option-label");
-    label.textContent = this.name;
-    optionContainer.append(label);
+    const optionContainer = createItemContainer(this.name, this.helpText);
 
     const valueContainer = document.createElement("div");
     valueContainer.classList.add("item-option-value-container");
 
     const inputField = document.createElement("textarea");
-    inputField.classList.add("new-item-multiline-input");
+    inputField.classList.add("item-form-multiline-input");
     valueContainer.append(inputField);
 
     inputField.value = value ?? "";
@@ -30,7 +25,12 @@ export class MultiLineFieldRenderer extends FieldRenderer<string> {
 
     optionContainer.append(valueContainer);
 
-    return new MultiLineFieldInstance(this.name, inputField, optionContainer);
+    return new MultiLineFieldInstance(
+      this.name,
+      inputField,
+      optionContainer,
+      errorElement
+    );
   }
 }
 
@@ -38,7 +38,8 @@ export class MultiLineFieldInstance extends FieldInstance<string> {
   constructor(
     name: string,
     private input: HTMLTextAreaElement,
-    private container: HTMLElement
+    private container: HTMLElement,
+    private errorElement: HTMLElement
   ) {
     super(name);
     input.addEventListener("change", () => {
@@ -56,5 +57,9 @@ export class MultiLineFieldInstance extends FieldInstance<string> {
 
   validate(): boolean {
     return true;
+  }
+
+  setErrorMessage(message: string) {
+    this.errorElement.textContent = message;
   }
 }

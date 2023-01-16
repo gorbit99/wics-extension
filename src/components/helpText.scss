@@ -1,0 +1,16 @@
+.help-hover {
+  position: absolute;
+  background: var(--help-background-color);
+  color: var(--text-color);
+  max-width: 50ch;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  line-height: 1.7em;
+  text-align: justify;
+}
+
+.input-help-circle {
+  cursor: help;
+  padding: 0.5em;
+  color: var(--secondary-title-color);
+}

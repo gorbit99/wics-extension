@@ -1,0 +1,11 @@
+.item-option-editable-value {
+  color: var(--text-color);
+
+  &::after {
+    content: "\f044";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 0.8em;
+    margin-left: 0.5em;
+  }
+}

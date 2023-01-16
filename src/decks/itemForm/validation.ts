@@ -15,7 +15,7 @@ export function validateLength(
 
 export function validateTextType(
   value: string,
-  type?: "any" | "kana" | "japanese" | "latin"
+  type?: "any" | "kana" | "japanese" | "latin" | "kanji"
 ): string | null {
   if (type === "any" || !type) {
     return null;
@@ -25,6 +25,7 @@ export function validateTextType(
     kana: /^[\u3040-\u30ff]*$/,
     japanese: /^[\u3040-\u30ff\u4e00-\u9faf]*$/,
     latin: /^[\x20-\x7e]*$/,
+    kanji: /^[\u4e00-\u9faf]*$/,
   }[type];
 
   if (!regex.test(value)) {

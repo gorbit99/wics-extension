@@ -22,8 +22,6 @@ export function renderDeckView(deck: CustomDeck, decksRoot: HTMLElement) {
   });
   setupBackButton(decksRoot);
 
-  renderItems(deck, decksContent.querySelector(".deck-view-items")!, decksRoot);
-
   decksRoot
     .querySelector(".deck-view-add-item")
     ?.addEventListener("click", () => renderNewItem(deck, decksRoot));
@@ -56,6 +54,8 @@ export function renderDeckView(deck: CustomDeck, decksRoot: HTMLElement) {
         ],
       });
     });
+
+  handlePaginationSetup(decksRoot, deck);
 }
 
 async function saveEdit(
@@ -151,17 +151,161 @@ function setupEditableField(elem: HTMLElement, deck: CustomDeck) {
 
 function renderItems(
   deck: CustomDeck,
-  itemList: HTMLElement,
-  decksRoot: HTMLElement
+  items: WKItem[],
+  decksRoot: HTMLElement,
+  from: number = 0,
+  pageSize: number = 100
 ) {
+  const itemList = decksRoot.querySelector(".deck-view-items")!;
   const template = itemList.querySelector(
     ".deck-view-item-template"
   ) as HTMLTemplateElement;
   const filler = itemList.querySelector(".deck-view-item-filler")!;
-  deck.getItems().forEach((item) => {
+  itemList.innerHTML = "";
+  itemList.append(template);
+  items.slice(from, from + pageSize).forEach((item) => {
     const itemElement = renderItem(deck, item, template, decksRoot);
-    filler.before(itemElement);
+    itemList.append(itemElement);
   });
+  itemList.append(filler);
+}
+
+const paginationContext = 2;
+
+function handlePaginationSetup(decksRoot: HTMLElement, deck: CustomDeck) {
+  let itemCount = deck.getItems().length;
+  let perPage = 100;
+  let pageCount = Math.ceil(itemCount / perPage);
+  let filter = "";
+  let items = deck.getItems();
+
+  const paginationButtons = decksRoot.querySelector(
+    ".deck-view-pagination-buttons"
+  ) as HTMLElement;
+
+  const firstButton = paginationButtons.querySelector(
+    "[data-page='first']"
+  ) as HTMLButtonElement;
+  const prevButton = paginationButtons.querySelector(
+    "[data-page='prev']"
+  ) as HTMLButtonElement;
+  const nextButton = paginationButtons.querySelector(
+    "[data-page='next']"
+  ) as HTMLButtonElement;
+  const lastButton = paginationButtons.querySelector(
+    "[data-page='last']"
+  ) as HTMLButtonElement;
+
+  let currentPage = 1;
+
+  const filterInput = decksRoot.querySelector(
+    ".deck-view-search-input"
+  ) as HTMLInputElement;
+
+  filterInput.addEventListener("change", () => {
+    console.log(filterInput.value);
+    filter = filterInput.value;
+
+    items = deck
+      .getItems()
+      .filter(
+        (item) =>
+          item.getCharacters().includes(filter) ||
+          item.getEnglish().find((english) => english.includes(filter)) ||
+          item.type.includes(filter) ||
+          item.getSrs().getBroadLevel().includes(filter) ||
+          item.getReadings()?.find((reading) => reading.includes(filter))
+      );
+
+    switchToPage(1);
+  });
+
+  firstButton.addEventListener("click", () => switchToPage(1));
+  prevButton.addEventListener("click", () => switchToPage(currentPage - 1));
+  nextButton.addEventListener("click", () => switchToPage(currentPage + 1));
+  lastButton.addEventListener("click", () => switchToPage(pageCount));
+
+  const infoCount = decksRoot.querySelector(
+    ".deck-view-pagination-info-count"
+  ) as HTMLElement;
+
+  const perPageInput = decksRoot.querySelector(
+    ".deck-view-pagination-per-page"
+  ) as HTMLInputElement;
+  perPageInput.value = perPage.toString();
+
+  perPageInput.addEventListener("change", () => {
+    perPage = Math.max(1, parseInt(perPageInput.value) ?? 100);
+    perPageInput.value = perPage.toString();
+    switchToPage(1);
+  });
+
+  const renderButtons = () => {
+    const buttons = createPaginationButtons(
+      currentPage,
+      pageCount,
+      switchToPage
+    );
+
+    paginationButtons.innerHTML = "";
+    paginationButtons.append(
+      firstButton,
+      prevButton,
+      ...buttons,
+      nextButton,
+      lastButton
+    );
+  };
+
+  const switchToPage = (page: number) => {
+    itemCount = items.length;
+    pageCount = Math.ceil(itemCount / perPage);
+    currentPage = page;
+    renderButtons();
+
+    firstButton.disabled = currentPage === 1;
+    prevButton.disabled = currentPage === 1;
+    nextButton.disabled = currentPage === pageCount;
+    lastButton.disabled = currentPage === pageCount;
+
+    infoCount.textContent = `${(currentPage - 1) * perPage + 1} - ${Math.min(
+      currentPage * perPage,
+      itemCount
+    )} of ${itemCount}`;
+
+    renderItems(deck, items, decksRoot, perPage * (currentPage - 1), perPage);
+  };
+
+  switchToPage(1);
+}
+
+function createPaginationButtons(
+  currentPage: number,
+  lastPage: number,
+  onClick: (page: number) => void
+): HTMLElement[] {
+  const falseLast = Math.min(lastPage, currentPage + paginationContext);
+  const firstButton = Math.max(1, falseLast - paginationContext * 2);
+  const lastButton = Math.min(lastPage, firstButton + paginationContext * 2);
+
+  return new Array(lastButton - firstButton + 1).fill(0).map((_, i) => {
+    const button = createPaginationButton(firstButton + i, onClick);
+    if (firstButton + i === currentPage) {
+      button.classList.add("active");
+    }
+    return button;
+  });
+}
+
+function createPaginationButton(
+  page: number,
+  onClick: (page: number) => void
+): HTMLElement {
+  const button = document.createElement("button");
+  button.classList.add("deck-view-pagination-button", "button");
+  button.addEventListener("click", () => onClick(page));
+  button.textContent = page.toString();
+  return button;
 }
 
 function renderItem(

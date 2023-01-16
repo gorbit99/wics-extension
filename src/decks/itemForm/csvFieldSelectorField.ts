@@ -1,6 +1,7 @@
 import { createErrorElement } from "./error";
 import { FieldInstance, FieldRenderer } from "./fields";
 import Papa from "papaparse";
+import { createItemContainer } from "./itemContainer";
 
 export interface CsvFieldConstraints {
   requiredFields: string[];
@@ -136,12 +137,7 @@ export class CsvFieldSelectorFieldInstance<
   }
 
   private createOption(fieldName: string): HTMLElement {
-    const container = document.createElement("div");
-    container.classList.add("item-option-container");
-
-    const label = document.createElement("label");
-    label.classList.add("item-option-label");
-    label.textContent = `"${fieldName}"`;
+    const container = createItemContainer(fieldName);
 
     const select = document.createElement("select");
     select.classList.add("item-form-dropdown");
@@ -167,7 +163,7 @@ export class CsvFieldSelectorFieldInstance<
       this.notifyChange();
     });
 
-    container.append(label, select);
+    container.append(select);
 
     return container;
   }

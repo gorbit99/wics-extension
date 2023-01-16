@@ -32,11 +32,16 @@ export default defineConfig({
         "src/decks.ts",
         "src/options.ts",
       ],
-      browser: "firefox",
+      browser: "chrome",
     }),
   ],
   build: {
     minify: false,
     sourcemap: "inline",
+  },
+  server: {
+    watch: {
+      usePolling: true,
+    },
   },
 });

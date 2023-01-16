@@ -13,6 +13,12 @@
   &.active {
     background: var(--button-hover-color);
   }
+
+  &:disabled {
+    background: var(--button-disabled-color);
+    color: var(--button-disabled-text-color);
+    cursor: not-allowed;
+  }
 }
 
 .button-danger {

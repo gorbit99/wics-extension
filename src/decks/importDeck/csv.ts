@@ -2,7 +2,7 @@ import { CustomDeck } from "../../storage/customDeck";
 import { ConstantFieldRenderer } from "../itemForm/constantField";
 import { CsvFieldSelectorFieldRenderer } from "../itemForm/csvFieldSelectorField";
 import { FieldGroupRenderer } from "../itemForm/fields";
-import { FileFieldRender } from "../itemForm/fileField";
+import { FileFieldRenderer } from "../itemForm/fileField";
 import { SelectFieldRenderer } from "../itemForm/selectField";
 import { TextFieldRenderer } from "../itemForm/textField";
 import Papa from "papaparse";
@@ -20,6 +20,7 @@ import { fetchSubjects } from "../../storage/wkapi";
 import { fromSubject } from "../../wanikani/fromSubject";
 
 interface CsvParameters {
+  deckName: string;
   file: File;
   separator: string;
   listSeparator: string;
@@ -56,7 +57,10 @@ const wkItemFields = {
 
 export async function csvFields() {
   return new FieldGroupRenderer<CsvParameters>({
-    file: new FileFieldRender("CSV file", { accept: "text/csv" }),
+    deckName: new TextFieldRenderer("Deck Name", {
+      minLength: 1,
+    }),
+    file: new FileFieldRenderer("CSV file", { accept: "text/csv" }),
     separator: new TextFieldRenderer("Separator"),
     listSeparator: new TextFieldRenderer("List separator"),
     hasHeader: new ConstantFieldRenderer(true),
@@ -84,8 +88,20 @@ export async function importCsv(
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = async () => {
+      const separator =
+        {
+          "\\t": "\t",
+          "": ",",
+        }[parameters.separator] ?? parameters.separator;
+
+      const listSeparator =
+        {
+          "\\t": "\t",
+          "": ",",
+        }[parameters.listSeparator] ?? parameters.listSeparator;
+
       const csvData = Papa.parse(reader.result as string, {
-        delimiter: parameters.separator,
+        delimiter: separator,
         skipEmptyLines: true,
       }).data as string[][];
 
@@ -99,27 +115,13 @@ export async function importCsv(
       ) as Record<keyof typeof wkItemFields, number>;
 
       const user = await fetchUser();
-      const deck = new CustomDeck("Imported CSV", user.username);
+      const deck = new CustomDeck(parameters.deckName, user.username);
 
       if (parameters.hasHeader) {
         csvData.shift();
       }
 
       let nextId = await StorageHandler.getInstance().getNewId();
-
-      if (parameters.listSeparator == "") {
-        parameters.listSeparator = ",";
-      }
-      if (parameters.listSeparator == "\\t") {
-        parameters.listSeparator = "\t";
-      }
-
-      if (parameters.separator == "") {
-        parameters.separator = ",";
-      }
-      if (parameters.separator == "\\t") {
-        parameters.separator = "\t";
-      }
 
       const wkItems = (await fetchSubjects()).map((subject) =>
         fromSubject(subject)
@@ -146,7 +148,7 @@ export async function importCsv(
             row,
             fieldIndices,
             nextId,
-            parameters.listSeparator,
+            listSeparator,
             getIdFromCharacter
           );
           nextId++;

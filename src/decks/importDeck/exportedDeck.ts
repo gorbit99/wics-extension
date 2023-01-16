@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { CustomDeck, CustomDeckExportData } from "../../storage/customDeck";
 import { FieldGroupRenderer } from "../itemForm/fields";
-import { FileFieldRender } from "../itemForm/fileField";
+import { FileFieldRenderer } from "../itemForm/fileField";
 
 interface ExportedDeckParameters {
   file: File;
@@ -9,7 +9,7 @@ interface ExportedDeckParameters {
 
 export function exportedDeckFields() {
   return new FieldGroupRenderer<ExportedDeckParameters>({
-    file: new FileFieldRender("Deck file", {
+    file: new FileFieldRenderer("Deck file", {
       accept: ".deck",
     }),
   });

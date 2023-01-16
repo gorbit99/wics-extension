@@ -281,6 +281,10 @@ export class WKVocabularyItem extends WKItem {
       }
     );
   }
+
+  getReadings(): string[] {
+    return this.getReadings();
+  }
 }
 
 export interface Collocation {

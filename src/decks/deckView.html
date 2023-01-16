@@ -22,32 +22,79 @@
   </div>
 </div>
 
-<div class="deck-view-item-list">
+<div class="deck-view-list-container">
   <div class="deck-view-list-header">
-    <span class="deck-view-header-field" data-field="type">Type</span>
-    <span class="deck-view-header-field" data-field="japanese">Japanese</span>
-    <span class="deck-view-header-field" data-field="english">English</span>
-    <span class="deck-view-header-field" data-field="srsLevel">SRS Level</span>
-    <span class="deck-view-header-field" data-field="edit"></span>
+    <div class="deck-view-search-container">
+      <span>Search</span>
+      <input type="text" class="deck-view-search-input" />
+    </div>
   </div>
-  <div class="deck-view-items">
-    <template class="deck-view-item-template">
-      <div class="deck-view-item">
+  <div class="deck-view-item-list">
+    <div class="deck-view-list-header">
+      <span class="deck-view-header-field" data-field="type">Type</span>
+      <span class="deck-view-header-field" data-field="japanese">Japanese</span>
+      <span class="deck-view-header-field" data-field="english">English</span>
+      <span class="deck-view-header-field" data-field="srsLevel"
+        >SRS Level</span
+      >
+      <span class="deck-view-header-field" data-field="edit"></span>
+    </div>
+    <div class="deck-view-items">
+      <template class="deck-view-item-template">
+        <div class="deck-view-item">
+          <span class="deck-view-item-field" data-field="type"></span>
+          <span class="deck-view-item-field" data-field="japanese"></span>
+          <span class="deck-view-item-field" data-field="english"></span>
+          <span class="deck-view-item-field" data-field="srsLevel"></span>
+          <span class="deck-view-item-field" data-field="edit">
+            <i class="fa fa-pen-to-square deck-view-edit-icon"></i>
+          </span>
+        </div>
+      </template>
+      <div class="deck-view-item-filler">
         <span class="deck-view-item-field" data-field="type"></span>
         <span class="deck-view-item-field" data-field="japanese"></span>
         <span class="deck-view-item-field" data-field="english"></span>
         <span class="deck-view-item-field" data-field="srsLevel"></span>
-        <span class="deck-view-item-field" data-field="edit">
-          <i class="fa fa-pen-to-square deck-view-edit-icon"></i>
-        </span>
+        <span class="deck-view-item-field" data-field="edit"></span>
       </div>
-    </template>
-    <div class="deck-view-item-filler">
-      <span class="deck-view-item-field" data-field="type"></span>
-      <span class="deck-view-item-field" data-field="japanese"></span>
-      <span class="deck-view-item-field" data-field="english"></span>
-      <span class="deck-view-item-field" data-field="srsLevel"></span>
-      <span class="deck-view-item-field" data-field="edit"></span>
+    </div>
+  </div>
+  <div class="deck-view-list-pagination">
+    <div class="deck-view-pagination-buttons">
+      <button
+        class="deck-view-pagination-button button"
+        disabled
+        data-page="first"
+      >
+        <i class="fa fa-angles-left"></i>
+      </button>
+      <button
+        class="deck-view-pagination-button button"
+        disabled
+        data-page="prev"
+      >
+        <i class="fa fa-angle-left"></i>
+      </button>
+      <button class="deck-view-pagination-button button" data-page="next">
+        <i class="fa fa-angle-right"></i>
+      </button>
+      <button class="deck-view-pagination-button button" data-page="last">
+        <i class="fa fa-angles-right"></i>
+      </button>
+    </div>
+    <span class="deck-view-pagination-info"
+      >Showing items<span class="deck-view-pagination-info-count"
+        >1-100 of 1000</span
+      ></span
+    >
+    <div class="deck-view-pagination-config">
+      <label for="paginationPerPage"> Per page </label>
+      <input
+        type="number"
+        class="deck-view-pagination-per-page"
+        id="paginationPerPage"
+      />
     </div>
   </div>
 </div>

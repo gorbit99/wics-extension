@@ -1,26 +1,25 @@
 import { createErrorElement } from "./error";
 import { FieldInstance, FieldRenderer } from "./fields";
+import { createItemContainer } from "./itemContainer";
 
-interface FieldFieldConstraints {
+export interface FileFieldConstraints {
   accept: string;
 }
 
-export class FileFieldRender extends FieldRenderer<File> {
-  constructor(name: string, private constraints?: FieldFieldConstraints) {
+export class FileFieldRenderer extends FieldRenderer<File> {
+  constructor(
+    name: string,
+    private constraints?: FileFieldConstraints,
+    private helpText?: string
+  ) {
     super(name);
   }
 
   async render(): Promise<FieldInstance<File>> {
-    const optionContainer = document.createElement("div");
-    optionContainer.classList.add("item-option-container");
+    const optionContainer = createItemContainer(this.name, this.helpText);
 
     const valueContainer = document.createElement("div");
     valueContainer.classList.add("item-option-value-container");
-
-    const label = document.createElement("label");
-    label.classList.add("item-option-label");
-    label.textContent = this.name;
-    optionContainer.append(label);
 
     const dropDiv = document.createElement("div");
     dropDiv.classList.add("item-option-file-drop");
@@ -56,7 +55,7 @@ export class FileFieldInstance extends FieldInstance<File> {
     private container: HTMLElement,
     private dropDiv: HTMLElement,
     private errorElement: HTMLElement,
-    private constraints?: FieldFieldConstraints
+    private constraints?: FileFieldConstraints
   ) {
     super(name);
 
@@ -115,5 +114,9 @@ export class FileFieldInstance extends FieldInstance<File> {
       return false;
     }
     return true;
+  }
+
+  setErrorMessage(message: string): void {
+    this.errorElement.textContent = message;
   }
 }

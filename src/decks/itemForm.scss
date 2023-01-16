@@ -1,11 +1,17 @@
-@import "src/components/mixins.scss";
+@use "./itemForm/listField.scss";
+@use "./itemForm/editableValue.scss";
+@use "./itemForm/selectField.scss";
+@use "./itemForm/groupedListField.scss";
+@use "./itemForm/fileField.scss";
+@use "./itemForm/csvFieldSelectorField.scss";
+@use "./itemForm/multilineField.scss";
+@use "src/components/helpText.scss";
 
 .item-form-option-error {
   color: var(--error-color);
   user-select: none;
   display: block;
   font-size: 0.8em;
-  text-align: center;
 }
 
 .item-option-container {
@@ -17,13 +23,6 @@
   padding: 0.25em 1em;
   box-sizing: border-box;
 
-  .item-option-label {
-    flex: 0 0 30%;
-    color: var(--text-color);
-    user-select: none;
-    display: block;
-  }
-
   .item-option-value-container {
     flex: 1 1 auto;
     display: flex;
@@ -33,37 +32,15 @@
   }
 }
 
-.item-button-group {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  flex: 1 1 auto;
-  box-shadow: 0 0 0.25em var(--shadow-color);
-
-  .item-button {
-    flex: 1 1;
-    border-radius: 0;
-  }
-
-  .item-button:first-of-type {
-    border-radius: 0.5em 0 0 0.5em;
-  }
-
-  .item-button:last-of-type {
-    border-radius: 0 0.5em 0.5em 0;
-  }
-}
-
-.item-option-editable-value {
+.item-option-label-container {
+  flex: 0 0 30%;
   color: var(--text-color);
+  user-select: none;
+  display: block;
 
-  &::after {
-    content: "\f044";
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    font-size: 0.8em;
-    margin-left: 0.5em;
+  .item-option-help {
+    cursor: question;
+    padding: 0.25em;
   }
 }
 
@@ -90,190 +67,4 @@
     font-size: 0.8em;
     margin-left: 0.5em;
   }
-}
-
-.item-form-group-list-list {
-  @include has-border(primary);
-
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-  padding: 0.5em;
-  box-sizing: border-box;
-}
-
-.item-form-group-list-row-container {
-  display: flex;
-  flex-direction: row;
-
-  .item-form-group-list-row {
-    @include has-border(secondary);
-    flex: 1 1 auto;
-    padding: 0.5em;
-    min-width: 0;
-  }
-}
-
-.item-form-group-list-actions-container {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  padding: 0 0.25em;
-
-  .item-form-group-list-action {
-    cursor: pointer;
-    user-select: none;
-    font-size: 1.5em;
-    padding: 0.25em;
-    line-height: 0.75em;
-  }
-
-  .item-form-group-list-move-up,
-  .item-form-group-list-move-down {
-    color: var(--button-color);
-    visibility: hidden;
-
-    .item-form-reorderable & {
-      visibility: visible;
-    }
-
-    &:hover {
-      color: var(--button-hover-color);
-    }
-  }
-
-  :first-of-type > & > .item-form-group-list-move-up {
-    visibility: hidden;
-  }
-
-  :last-of-type > & > .item-form-group-list-move-down {
-    visibility: hidden;
-  }
-
-  .item-form-group-list-delete {
-    color: var(--delete-color);
-
-    &:hover {
-      color: var(--delete-hover-color);
-    }
-
-    .item-form-group-list-min-reached & {
-      visibility: hidden;
-    }
-  }
-}
-
-.item-form-group-list-new-button {
-  .item-form-group-list-max-reached & {
-    display: none;
-  }
-
-  .item-form-group-list-add-icon {
-    padding-right: 1em;
-  }
-
-  .item-form-group-list-max-reached & {
-    display: none;
-  }
-}
-
-.item-form-list-option-list {
-  @include has-border(primary);
-
-  display: flex;
-  flex: 1 1 auto;
-  padding: 0.5em;
-  gap: 0.5em;
-  flex-wrap: wrap;
-}
-
-.item-form-list-drop-target {
-  flex: 1 1 auto;
-}
-
-.item-form-list-max-reached .item-form-list-new-button {
-  display: none;
-}
-
-.item-form-list-value {
-  @include has-border(input);
-
-  color: var(--text-color);
-  background: var(--button-color);
-  padding: 0.5em;
-  user-select: none;
-  position: relative;
-
-  .item-form-list-remove-button {
-    color: var(--error-color);
-    margin-left: 0.5em;
-    cursor: pointer;
-  }
-
-  .item-form-list-min-reached & .item-form-list-remove-button {
-    display: none;
-  }
-
-  &[data-dragover="true"]::before {
-    position: absolute;
-    content: "\f0d8";
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    font-size: 0.8em;
-    margin-right: 0.5em;
-    left: -0.5em;
-    bottom: -0.5em;
-  }
-
-  [data-dragover="true"] &:last-of-type::before {
-    position: absolute;
-    content: "\f0d8";
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    font-size: 0.8em;
-    margin-right: 0.5em;
-    right: -1em;
-    bottom: -0.5em;
-  }
-
-  .new-item-reorderable & {
-    cursor: move;
-  }
-}
-
-.item-option-file-drop {
-  border: 1px dashed var(--secondary-border-color);
-  border-radius: 0.5em;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-color);
-  padding: 1em;
-  user-select: none;
-  cursor: pointer;
-  text-align: center;
-
-  &:hover,
-  &.dragover {
-    background: var(--button-hover-color);
-  }
-
-  .item-option-file-drop-icon {
-    font-size: 2em;
-    margin-right: 0.5em;
-  }
-}
-
-.item-form-csv-field-container {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.5em;
-  margin: 0.5em 0;
-}
-
-.item-form-dropdown {
-  flex: 1 1 auto;
 }

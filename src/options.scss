@@ -1,4 +1,5 @@
 @use "src/components/commonComponents.scss";
+@use "src/components/helpText.scss";
 @import "src/components/mixins.scss";
 
 .options-tabs {
@@ -73,12 +74,6 @@
     padding: 0.5em;
     accent-color: var(--button-hover-color);
   }
-
-  .options-input-help {
-    cursor: help;
-    padding: 0.5em;
-    color: var(--secondary-title-color);
-  }
 }
 
 .options-coming-soon {
@@ -89,18 +84,6 @@
   flex: 1 1 auto;
   color: var(--text-color);
   padding-top: 3em;
-}
-
-.options-help-hover {
-  display: none;
-  position: absolute;
-  background: var(--help-background-color);
-  color: var(--text-color);
-  max-width: 50ch;
-  padding: 0.5em;
-  border-radius: 0.5em;
-  line-height: 1.7em;
-  text-align: justify;
 }
 
 .options-regular-zone {

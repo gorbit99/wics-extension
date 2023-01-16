@@ -1,0 +1,23 @@
+.item-option-file-drop {
+  border: 1px dashed var(--secondary-border-color);
+  border-radius: 0.5em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  padding: 1em;
+  user-select: none;
+  cursor: pointer;
+  text-align: center;
+
+  &:hover,
+  &.dragover {
+    background: var(--button-hover-color);
+  }
+
+  .item-option-file-drop-icon {
+    font-size: 2em;
+    margin-right: 0.5em;
+  }
+}

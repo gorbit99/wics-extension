@@ -5,6 +5,13 @@ import {
   FieldInstance,
   FieldRenderer,
 } from "./fields";
+import { createItemContainer } from "./itemContainer";
+
+export interface GroupedListFieldConstraints {
+  reorderable?: boolean;
+  minOptions?: number;
+  maxOptions?: number;
+}
 
 export class GroupedListFieldRenderer<
   RowValue extends Record<string, any>
@@ -12,9 +19,8 @@ export class GroupedListFieldRenderer<
   constructor(
     name: string,
     private rowRenderer: FieldGroupRenderer<RowValue>,
-    private reorderable: boolean = false,
-    private minOptions?: number,
-    private maxOptions?: number
+    private constraints: GroupedListFieldConstraints = {},
+    private helpText?: string
   ) {
     super(name);
   }
@@ -22,13 +28,7 @@ export class GroupedListFieldRenderer<
   async render(value?: RowValue[]): Promise<FieldInstance<RowValue[]>> {
     const hadDefaultValue = value != undefined;
 
-    const container = document.createElement("div");
-    container.classList.add("item-option-container");
-
-    const label = document.createElement("label");
-    label.classList.add("item-option-label");
-    label.textContent = this.name;
-    container.append(label);
+    const container = createItemContainer(this.name, this.helpText);
 
     const newButton = document.createElement("button");
     newButton.classList.add("button", "item-form-group-list-new-button");
@@ -47,7 +47,7 @@ export class GroupedListFieldRenderer<
     list.classList.add("item-form-group-list-list");
     list.append(newButton);
 
-    if (this.reorderable) {
+    if (this.constraints.reorderable) {
       list.classList.add("item-form-reorderable");
     }
 
@@ -63,8 +63,7 @@ export class GroupedListFieldRenderer<
       list,
       newButton,
       hadDefaultValue,
-      this.minOptions,
-      this.maxOptions
+      this.constraints
     );
 
     value?.forEach((rowValue) => instance.addValue(rowValue));
@@ -85,8 +84,7 @@ export class GroupedListFieldInstance<
     private list: HTMLElement,
     private newButton: HTMLElement,
     private hadDefaultValue: boolean,
-    private minOptions?: number,
-    private maxOptions?: number
+    private constraints: GroupedListFieldConstraints
   ) {
     super(name);
 
@@ -198,9 +196,11 @@ export class GroupedListFieldInstance<
     }
     const values = this.getValue();
     const minReached =
-      this.minOptions != undefined && values.length <= this.minOptions;
+      this.constraints.minOptions != undefined &&
+      values.length <= this.constraints.minOptions;
     const maxReached =
-      this.maxOptions != undefined && values.length >= this.maxOptions;
+      this.constraints.maxOptions != undefined &&
+      values.length >= this.constraints.maxOptions;
 
     this.list.classList.toggle("item-form-group-list-min-reached", minReached);
     this.list.classList.toggle("item-form-group-list-max-reached", maxReached);

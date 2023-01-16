@@ -1,28 +1,28 @@
 import { createErrorElement } from "./error";
 import { FieldInstance, FieldRenderer } from "./fields";
+import { createItemContainer } from "./itemContainer";
 import { validateLength, validateTextType } from "./validation";
+
+export interface TextFieldConstraints {
+  minLength?: number;
+  maxLength?: number;
+  type?: "kana" | "japanese" | "latin" | "kanji";
+}
 
 export class TextFieldRenderer extends FieldRenderer<string> {
   constructor(
     name: string,
-    private minLength?: number,
-    private maxLength?: number,
-    private type: "any" | "kana" | "japanese" | "latin" = "any"
+    private constraints: TextFieldConstraints = {},
+    private helpText?: string
   ) {
     super(name);
   }
 
   async render(value?: string): Promise<TextFieldInstance> {
-    const optionContainer = document.createElement("div");
-    optionContainer.classList.add("item-option-container");
+    const optionContainer = createItemContainer(this.name, this.helpText);
 
     const valueContainer = document.createElement("div");
     valueContainer.classList.add("item-option-value-container");
-
-    const label = document.createElement("label");
-    label.classList.add("item-option-label");
-    label.textContent = this.name;
-    optionContainer.append(label);
 
     const input = document.createElement("input");
     input.type = "text";
@@ -40,9 +40,7 @@ export class TextFieldRenderer extends FieldRenderer<string> {
       optionContainer,
       input,
       errorElement,
-      this.minLength,
-      this.maxLength,
-      this.type
+      this.constraints
     );
   }
 }
@@ -53,9 +51,7 @@ export class TextFieldInstance extends FieldInstance<string> {
     private container: HTMLElement,
     private input: HTMLInputElement,
     private errorElement: HTMLElement,
-    private minLength?: number,
-    private maxLength?: number,
-    private type: "any" | "kana" | "japanese" | "latin" = "any"
+    private constraints: TextFieldConstraints = {}
   ) {
     super(name);
     input.addEventListener("change", () => {
@@ -74,9 +70,16 @@ export class TextFieldInstance extends FieldInstance<string> {
   validate(): boolean {
     const value = this.input.value;
     const error =
-      validateLength(value, this.minLength, this.maxLength) ??
-      validateTextType(value, this.type);
+      validateLength(
+        value,
+        this.constraints.minLength,
+        this.constraints.maxLength
+      ) ?? validateTextType(value, this.constraints.type);
     this.errorElement.textContent = error ?? "";
     return !error;
+  }
+
+  setErrorMessage(message: string): void {
+    this.errorElement.textContent = message;
   }
 }
