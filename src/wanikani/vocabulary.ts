@@ -1,6 +1,8 @@
-import { WKVocabularySubject } from "../storage/wkapi";
+import { CustomDeck } from "../storage/customDeck";
+import { fetchSubjects, WKVocabularySubject } from "../storage/wkapi";
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, AuxiliaryReading, WKRelationship } from "./common";
+import { fromSubject } from "./fromSubject";
 import { WKItem } from "./item";
 import {
   WKExportItem,
@@ -14,6 +16,7 @@ import { WKSrsData } from "./srsData";
 export class WKVocabularyItem extends WKItem {
   constructor(
     id: number,
+    deckId: number,
     english: [string, ...string[]],
     characters: string,
     private audio: Audio[],
@@ -30,6 +33,7 @@ export class WKVocabularyItem extends WKItem {
   ) {
     super(
       id,
+      deckId,
       "vocabulary",
       english,
       characters,
@@ -39,7 +43,7 @@ export class WKVocabularyItem extends WKItem {
     );
   }
 
-  async getReviewData(): Promise<WKVocabularyReviewItem> {
+  async getReviewData(parent: CustomDeck): Promise<WKVocabularyReviewItem> {
     return {
       en: this.english,
       id: this.id,
@@ -47,7 +51,7 @@ export class WKVocabularyItem extends WKItem {
       voc: this.characters,
       kana: this.kana,
       type: "Vocabulary",
-      kanji: await this.mapKanji(),
+      kanji: await this.mapKanji(parent),
       category: "Vocabulary",
       characters: this.characters,
       auxiliary_meanings: this.auxiliaryMeanings,
@@ -57,7 +61,7 @@ export class WKVocabularyItem extends WKItem {
     };
   }
 
-  async getLessonData(): Promise<WKVocabularyLessonItem> {
+  async getLessonData(parent: CustomDeck): Promise<WKVocabularyLessonItem> {
     return {
       en: this.english,
       id: this.id,
@@ -67,7 +71,7 @@ export class WKVocabularyItem extends WKItem {
       mmne: this.meaningMnemonic,
       rmne: this.readingMnemonic,
       type: "Vocabulary",
-      kanji: await this.mapKanji(),
+      kanji: await this.mapKanji(parent),
       category: "Vocabulary",
       sentences: this.sentences.map((sentence) => [
         sentence.english,
@@ -118,15 +122,13 @@ export class WKVocabularyItem extends WKItem {
     };
   }
 
-  async getExportData(wkItems: WKItem[]): Promise<WKVocabularyExportItem> {
+  getExportData(): WKVocabularyExportItem {
     return {
       ...this.getBaseExportData(),
       audio: this.audio,
       kana: this.kana,
       readingMnemonic: this.readingMnemonic,
-      kanji: wkItems
-        .filter((item) => this.kanji.includes(item.getID()))
-        .map((item) => item.getCharacters()),
+      kanji: this.kanji,
       sentences: this.sentences,
       collocations: this.collocations,
       partsOfSpeech: this.partsOfSpeech,
@@ -134,23 +136,20 @@ export class WKVocabularyItem extends WKItem {
     } as WKVocabularyExportItem;
   }
 
-  static async fromExportData(
+  static fromExportData(
     id: number,
-    data: WKVocabularyExportItem,
-    getIdFromCharacter: (
-      character: string,
-      type: "radical" | "kanji" | "vocabulary"
-    ) => number
-  ): Promise<WKVocabularyItem> {
+    data: WKVocabularyExportItem
+  ): WKVocabularyItem {
     return new WKVocabularyItem(
       id,
+      data.deckId,
       data.english,
       data.characters,
       data.audio,
       data.kana,
       data.meaningMnemonic,
       data.readingMnemonic,
-      data.kanji.map((character) => getIdFromCharacter(character, "kanji")),
+      data.kanji,
       data.sentences,
       data.collocations,
       data.partsOfSpeech,
@@ -178,16 +177,27 @@ export class WKVocabularyItem extends WKItem {
     };
   }
 
-  private async mapKanji(): Promise<WKVocabularyKanji[]> {
-    const kanji = (await StorageHandler.getInstance().getAllItemsFromIds(
-      this.kanji
-    )) as WKKanjiItem[];
-    return kanji.map((kanji) => kanji.getVocabKanjiData());
+  async mapKanji(parent: CustomDeck): Promise<WKVocabularyKanji[]> {
+    return (await parent.mapRelatedItems(this.kanji)).map((item) =>
+      (item as WKKanjiItem).getVocabKanjiData()
+    );
   }
 
   static hydrate(vocabulary: WKVocabularyItem): void {
     Object.setPrototypeOf(vocabulary, WKVocabularyItem.prototype);
     WKSrsData.hydrate(vocabulary.srs);
+  }
+
+  updateFromItem(item: WKVocabularyItem) {
+    super.updateFromItem(item);
+    this.audio = item.audio;
+    this.kana = item.kana;
+    this.readingMnemonic = item.readingMnemonic;
+    this.kanji = item.kanji;
+    this.sentences = item.sentences;
+    this.collocations = item.collocations;
+    this.partsOfSpeech = item.partsOfSpeech;
+    this.auxiliaryReadings = item.auxiliaryReadings;
   }
 
   getValue(id: string): any {
@@ -247,6 +257,7 @@ export class WKVocabularyItem extends WKItem {
   static fromSubject(subject: WKVocabularySubject): WKVocabularyItem {
     return new WKVocabularyItem(
       subject.id,
+      subject.id,
       subject.meanings
         .sort((a, _) => (a.primary ? -1 : 1))
         .map((meaning) => meaning.meaning) as [string, ...string[]],
@@ -284,6 +295,46 @@ export class WKVocabularyItem extends WKItem {
 
   getReadings(): string[] {
     return this.kana;
+  }
+
+  clone(deckId: number, id: number): WKVocabularyItem {
+    return new WKVocabularyItem(
+      id,
+      deckId,
+      this.english,
+      this.characters,
+      this.audio,
+      this.kana,
+      this.meaningMnemonic,
+      this.readingMnemonic,
+      this.kanji,
+      this.sentences,
+      this.collocations,
+      this.partsOfSpeech,
+      this.auxiliaryMeanings,
+      this.auxiliaryReadings,
+      this.relationships
+    );
+  }
+
+  removeRelated(deckId: number) {
+    this.kanji = this.kanji.filter((id) => id !== deckId);
+  }
+
+  addRelatedKanji(deckId: number) {
+    this.kanji.push(deckId);
+  }
+
+  fixUpRelated(deck: CustomDeck) {
+    this.kanji = this.kanji
+      .map(
+        (id) =>
+          deck
+            .getItems()
+            .find((item) => item.getID() === id)
+            ?.getDeckId() ?? undefined
+      )
+      .filter((id) => id !== undefined) as number[];
   }
 }
 
@@ -344,7 +395,7 @@ export interface WKVocabularyExportItem extends WKExportItem {
   audio: Audio[];
   kana: string[];
   readingMnemonic: string;
-  kanji: string[];
+  kanji: number[];
   sentences: { japanese: string; english: string }[];
   collocations: Collocation[];
   partsOfSpeech: string[];

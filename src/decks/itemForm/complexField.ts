@@ -33,7 +33,7 @@ export class ComplexFieldInstance<
     return this.instance.getValue();
   }
 
-  validate(): boolean {
-    return this.instance.validate();
+  validate(): Promise<boolean> {
+    return this.instance.validate(undefined);
   }
 }

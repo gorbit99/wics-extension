@@ -71,6 +71,18 @@ async function initializeOptions(optionsRoot: HTMLElement) {
     config
   );
 
+  const updateMissingItemHandling = optionsRoot.querySelector(
+    "#updateMissingItemHandling"
+  ) as HTMLSelectElement;
+  initializeOption(
+    updateMissingItemHandling,
+    (value) => (updateMissingItemHandling.value = value),
+    () =>
+      updateMissingItemHandling.value as ConfigData["updateMissingItemHandling"],
+    "updateMissingItemHandling",
+    config
+  );
+
   const csvImportFieldStyleOptionsSelect = optionsRoot.querySelector(
     "#csvImportFieldStyle"
   ) as HTMLSelectElement;

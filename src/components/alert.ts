@@ -8,6 +8,7 @@ interface AlertConfig {
   title: string;
   message: string;
   buttons: AlertButton[];
+  afterClosing?: () => void;
 }
 
 interface AlertButton {
@@ -43,7 +44,8 @@ export async function createAlert(config: AlertConfig) {
     () => {
       shadowContainer.remove();
       browser.runtime.onMessage.removeListener(onMessage);
-    }
+    },
+    config.afterClosing
   );
 
   await handleDarkModeSwitch(shadowDom.querySelector(".alert-root")!);
@@ -64,7 +66,8 @@ export async function createAlert(config: AlertConfig) {
 export function createButtons(
   buttonContainer: HTMLElement,
   buttons: AlertButton[],
-  closeAlert: () => void
+  closeAlert: () => void,
+  afterClosing?: () => void
 ) {
   const buttonTemplate = buttonContainer.querySelector(
     ".alert-action-template"
@@ -78,6 +81,7 @@ export function createButtons(
     buttonElement.addEventListener("click", async () => {
       if (await button.handler()) {
         closeAlert();
+        afterClosing?.();
       }
     });
     const buttonClass = {
@@ -85,7 +89,9 @@ export function createButtons(
       secondary: "button-secondary",
       danger: "button-danger",
     }[button.style];
-    buttonElement.classList.add(buttonClass);
+    if (buttonClass !== "") {
+      buttonElement.classList.add(buttonClass);
+    }
     buttonContainer.append(buttonElement);
   });
 }

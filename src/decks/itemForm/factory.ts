@@ -21,11 +21,17 @@ export type ItemFormConfig<T extends Record<string, unknown>> = {
   [K in keyof T]: ItemFormFieldConfig<T[K]>;
 };
 
-export function generateForm<T extends Record<string, unknown>>(
+export function generateForm<
+  T extends Record<string, unknown>,
+  ValidationParams extends Record<string, any> | undefined = undefined
+>(
   config: ItemFormConfig<T>,
   type: "form" | "dataView",
-  validationCallback?: (value: T) => Partial<Record<keyof T, string>>
-): FieldGroupRenderer<T> {
+  validationCallback?: (
+    value: T,
+    validationParms: ValidationParams
+  ) => Promise<Partial<Record<keyof T, string>>>
+): FieldGroupRenderer<T, ValidationParams> {
   const entries = Object.entries(config) as ItemFormFieldEntry<T>[];
   const fieldEntries = entries.map(([name, fieldConfig]) =>
     generateFormField(name as string, type, fieldConfig)
@@ -34,7 +40,9 @@ export function generateForm<T extends Record<string, unknown>>(
   const fields = Object.fromEntries(
     fieldEntries
   ) as FieldGroupRendererFields<T>;
-  return new FieldGroupRenderer<T>(fields, { validationCallback });
+  return new FieldGroupRenderer<T, ValidationParams>(fields, {
+    validationCallback,
+  });
 }
 
 function generateFormField<Type>(
@@ -131,7 +139,7 @@ function generateFormField<Type>(
   }
 }
 
-type ItemFormFieldEntry<T extends Record<string, unknown>> = [
+type ItemFormFieldEntry<T extends Record<string, any>> = [
   keyof T,
   ItemFormFieldConfig<T[keyof T]>
 ];

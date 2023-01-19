@@ -3,4 +3,5 @@ export interface ConfigData {
   reviewPlacement: "front" | "back" | "random";
 
   csvImportFieldStyle: "fieldName" | "hoverTextComma" | "hoverTextNewline";
+  updateMissingItemHandling: "keep" | "delete";
 }

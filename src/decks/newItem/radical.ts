@@ -1,11 +1,14 @@
+import { CustomDeck } from "../../storage/customDeck";
 import { StorageHandler } from "../../storageHandler";
 import {
   AuxiliaryMeaning,
+  WKKanjiItem,
   WKRadicalItem,
   WKRelationship,
 } from "../../wanikani";
 import { generateForm, ItemFormConfig } from "../itemForm/factory";
 import { FieldGroupRenderer } from "../itemForm/fields";
+import { checkForMissingRelated } from "./related";
 
 export type Radical = {
   characters: string;
@@ -154,31 +157,69 @@ const radicalFormConfig: ItemFormConfig<Radical> = {
   },
 };
 
-const radicalInputFields: FieldGroupRenderer<Radical> = generateForm(
-  radicalFormConfig,
-  "form"
-);
+interface ValidationParams {
+  deck: CustomDeck;
+}
 
-const radicalViewFields: FieldGroupRenderer<Radical> = generateForm(
-  radicalFormConfig,
-  "dataView"
-);
+const radicalInputFields: FieldGroupRenderer<Radical, ValidationParams> =
+  generateForm<Radical, ValidationParams>(
+    radicalFormConfig,
+    "form",
+    validateRadicalResult
+  );
+
+const radicalViewFields: FieldGroupRenderer<Radical, ValidationParams> =
+  generateForm(radicalFormConfig, "dataView", validateRadicalResult);
+
+async function validateRadicalResult(
+  radical: Radical,
+  validationParams: ValidationParams
+) {
+  const missingKanjiError = await checkForMissingRelated(
+    radical.kanji,
+    validationParams.deck,
+    "kanji"
+  );
+
+  if (!missingKanjiError) {
+    return {};
+  }
+
+  return {
+    kanji: missingKanjiError,
+  };
+}
 
 export async function convertToRadical(
-  values: Record<string, any>
+  values: Record<string, any>,
+  deckId: number,
+  deck: CustomDeck
 ): Promise<WKRadicalItem> {
   const radical = values as Radical;
+
+  const kanjiIds = deck
+    .getItems()
+    .filter(
+      (item) =>
+        item.type === "kanji" && values.kanji.includes(item.getCharacters())
+    )
+    .map((item) => item.getDeckId());
+
+  kanjiIds.forEach((id) =>
+    (deck.getItem(id) as WKKanjiItem).addRelatedRadical(deckId)
+  );
 
   // TODO: image radicals
   return new WKRadicalItem(
     await StorageHandler.getInstance().getNewId(),
+    deckId,
     radical.english as [string, ...string[]],
     radical.characters,
     radical.auxiliaryMeanings,
     radical.relationships,
     radical.meaningMnemonic,
     "",
-    await StorageHandler.getInstance().kanjiToIds(radical.kanji)
+    kanjiIds
   );
 }
 

@@ -1,12 +1,16 @@
+import { CustomDeck } from "../../storage/customDeck";
 import { StorageHandler } from "../../storageHandler";
 import {
   AuxiliaryMeaning,
   AuxiliaryReading,
   WKKanjiItem,
+  WKRadicalItem,
   WKRelationship,
+  WKVocabularyItem,
 } from "../../wanikani";
 import { generateForm, ItemFormConfig } from "../itemForm/factory";
 import { FieldGroupRenderer } from "../itemForm/fields";
+import { checkForMissingRelated } from "./related";
 
 export type Kanji = {
   characters: string;
@@ -241,20 +245,19 @@ const kanjiFormConfig: ItemFormConfig<Kanji> = {
   },
 };
 
-const kanjiInputFields: FieldGroupRenderer<Kanji> = generateForm(
-  kanjiFormConfig,
-  "form",
-  validateKanjiResult
-);
-const kanjiViewFields: FieldGroupRenderer<Kanji> = generateForm(
-  kanjiFormConfig,
-  "dataView",
-  validateKanjiResult
-);
+interface ValidationParams {
+  deck: CustomDeck;
+}
 
-function validateKanjiResult(
-  kanji: Kanji
-): Partial<Record<keyof Kanji, string>> {
+const kanjiInputFields: FieldGroupRenderer<Kanji, ValidationParams> =
+  generateForm(kanjiFormConfig, "form", validateKanjiResult);
+const kanjiViewFields: FieldGroupRenderer<Kanji, ValidationParams> =
+  generateForm(kanjiFormConfig, "dataView", validateKanjiResult);
+
+async function validateKanjiResult(
+  kanji: Kanji,
+  validationParams: ValidationParams
+) {
   const readingFields = {
     onyomi: kanji.onyomi,
     kunyomi: kanji.kunyomi,
@@ -267,15 +270,61 @@ function validateKanjiResult(
   if (mainReadingField.length === 0) {
     errors[kanji.emphasis] = `Must have at least one ${kanji.emphasis} reading`;
   }
+
+  const missingRadicalError = await checkForMissingRelated(
+    kanji.radicals,
+    validationParams.deck,
+    "radical"
+  );
+  if (missingRadicalError) {
+    errors["radicals"] = missingRadicalError;
+  }
+
+  const missingVocabularyError = await checkForMissingRelated(
+    kanji.vocabulary,
+    validationParams.deck,
+    "vocabulary"
+  );
+  if (missingVocabularyError) {
+    errors["vocabulary"] = missingVocabularyError;
+  }
+
   return errors;
 }
 
 export async function convertToKanji(
-  values: Record<string, any>
+  values: Record<string, any>,
+  deckId: number,
+  deck: CustomDeck
 ): Promise<WKKanjiItem> {
   const kanji = values as Kanji;
+
+  const radicalIds = deck
+    .getItems()
+    .filter(
+      (item) =>
+        item.type === "radical" && kanji.radicals.includes(item.getCharacters())
+    )
+    .map((item) => item.getDeckId());
+  radicalIds.forEach((id) =>
+    (deck.getItem(id) as WKRadicalItem).addRelatedKanji(deckId)
+  );
+
+  const vocabularyIds = deck
+    .getItems()
+    .filter(
+      (item) =>
+        item.type === "vocabulary" &&
+        kanji.vocabulary.includes(item.getCharacters())
+    )
+    .map((item) => item.getDeckId());
+  vocabularyIds.forEach((id) =>
+    (deck.getItem(id) as WKVocabularyItem).addRelatedKanji(deckId)
+  );
+
   return new WKKanjiItem(
     await StorageHandler.getInstance().getNewId(),
+    deckId,
     kanji.english as [string, ...string[]],
     kanji.characters,
     kanji.onyomi,
@@ -286,8 +335,8 @@ export async function convertToKanji(
     kanji.meaningHint,
     kanji.readingMnemonic,
     kanji.readingHint,
-    await StorageHandler.getInstance().radicalsToIds(kanji.radicals),
-    await StorageHandler.getInstance().vocabularyToIds(kanji.vocabulary),
+    radicalIds,
+    vocabularyIds,
     kanji.auxiliaryMeanings,
     kanji.auxiliaryReadings,
     kanji.relationships

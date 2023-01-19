@@ -1,13 +1,16 @@
+import { CustomDeck } from "../../storage/customDeck";
 import { StorageHandler } from "../../storageHandler";
 import {
   AuxiliaryMeaning,
   AuxiliaryReading,
   Collocation,
+  WKKanjiItem,
   WKRelationship,
   WKVocabularyItem,
 } from "../../wanikani";
 import { generateForm, ItemFormConfig } from "../itemForm/factory";
 import { FieldGroupRenderer } from "../itemForm/fields";
+import { checkForMissingRelated } from "./related";
 
 interface Audio {
   url: string;
@@ -328,22 +331,57 @@ const vocabularyFormConfig: ItemFormConfig<Vocabulary> = {
   },
 };
 
-const vocabularyInputFields: FieldGroupRenderer<Vocabulary> = generateForm(
-  vocabularyFormConfig,
-  "form"
-);
+interface ValidationParams {
+  deck: CustomDeck;
+}
 
-const vocabularyViewFields: FieldGroupRenderer<Vocabulary> = generateForm(
-  vocabularyFormConfig,
-  "dataView"
-);
+const vocabularyInputFields: FieldGroupRenderer<Vocabulary, ValidationParams> =
+  generateForm(vocabularyFormConfig, "form", validateVocabularyResult);
+
+const vocabularyViewFields: FieldGroupRenderer<Vocabulary, ValidationParams> =
+  generateForm(vocabularyFormConfig, "dataView", validateVocabularyResult);
+
+async function validateVocabularyResult(
+  vocabulary: Vocabulary,
+  validationParams: ValidationParams
+) {
+  const missingKanjiError = await checkForMissingRelated(
+    vocabulary.kanji,
+    validationParams.deck,
+    "kanji"
+  );
+
+  if (!missingKanjiError) {
+    return {};
+  }
+
+  return {
+    kanji: missingKanjiError,
+  };
+}
 
 export async function convertToVocabulary(
-  values: Record<string, unknown>
+  values: Record<string, unknown>,
+  deckId: number,
+  deck: CustomDeck
 ): Promise<WKVocabularyItem> {
   const vocab = values as Vocabulary;
+
+  const kanjiIds = deck
+    .getItems()
+    .filter(
+      (item) =>
+        item.type === "kanji" && vocab.kanji.includes(item.getCharacters())
+    )
+    .map((item) => item.getDeckId());
+
+  kanjiIds.forEach((id) =>
+    (deck.getItemByDeckId(id) as WKKanjiItem).addRelatedVocabulary(deckId)
+  );
+
   return new WKVocabularyItem(
     await StorageHandler.getInstance().getNewId(),
+    deckId,
     vocab.english as [string, ...string[]],
     vocab.characters,
     vocab.audio.map((audio) => ({
@@ -355,7 +393,7 @@ export async function convertToVocabulary(
     vocab.kana,
     vocab.meaningMnemonic,
     vocab.readingMnemonic,
-    await StorageHandler.getInstance().kanjiToIds(vocab.kanji),
+    kanjiIds,
     vocab.sentences,
     vocab.collocations,
     vocab.partsOfSpeech,

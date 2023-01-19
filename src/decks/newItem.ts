@@ -45,23 +45,40 @@ export async function renderNewItem(deck: CustomDeck, decksRoot: HTMLElement) {
   const kanjiGroupInstance = await kanjiInputFields.render();
   const vocabularyGroupInstance = await vocabularyInputFields.render();
 
-  let [getValue, validate]: [() => Record<string, any>, () => boolean] =
-    renderInstance(options, radicalGroupInstance);
-  let converter: (values: Record<string, any>) => Promise<WKItem> =
-    convertToRadical;
+  let [getValue, validate]: [
+    () => Record<string, any>,
+    () => Promise<boolean>
+  ] = renderInstance(options, radicalGroupInstance, deck);
+  let converter: (
+    values: Record<string, any>,
+    deckId: number,
+    deck: CustomDeck
+  ) => Promise<WKItem> = convertToRadical;
 
   typeSelector.onChange((value) => {
     switch (value) {
       case "radical":
-        [getValue, validate] = renderInstance(options, radicalGroupInstance);
+        [getValue, validate] = renderInstance(
+          options,
+          radicalGroupInstance,
+          deck
+        );
         converter = convertToRadical;
         break;
       case "kanji":
-        [getValue, validate] = renderInstance(options, kanjiGroupInstance);
+        [getValue, validate] = renderInstance(
+          options,
+          kanjiGroupInstance,
+          deck
+        );
         converter = convertToKanji;
         break;
       case "vocabulary":
-        [getValue, validate] = renderInstance(options, vocabularyGroupInstance);
+        [getValue, validate] = renderInstance(
+          options,
+          vocabularyGroupInstance,
+          deck
+        );
         converter = convertToVocabulary;
         break;
     }
@@ -70,17 +87,18 @@ export async function renderNewItem(deck: CustomDeck, decksRoot: HTMLElement) {
   decksRoot
     .querySelector(".new-item-save")
     ?.addEventListener("click", async () => {
-      if (!validate()) {
+      if (!(await validate())) {
         return;
       }
-      const promise = converter(getValue());
+      const deckId = deck.getNextDeckId();
+      const promise = converter(getValue(), deckId, deck);
       ProgressManager.getInstance().handleProgressEvent(
         promise,
         "Saving item..."
       );
       const item = await promise;
       deck.addItem(item);
-      await StorageHandler.getInstance().updateDeck(deck.getName(), deck);
+      await StorageHandler.getInstance().swapDeck(deck.getName(), deck);
       renderDeckView(deck, decksRoot);
     });
   decksRoot.querySelector(".new-item-cancel")?.addEventListener("click", () => {
@@ -90,13 +108,18 @@ export async function renderNewItem(deck: CustomDeck, decksRoot: HTMLElement) {
   setupBackButton(decksRoot, deck);
 }
 
+interface ValidationParams {
+  deck: CustomDeck;
+}
+
 function renderInstance<T extends Record<string, any>>(
   optionsContainer: HTMLElement,
-  instance: FieldGroupInstance<T>
-): [() => T, () => boolean] {
+  instance: FieldGroupInstance<T, ValidationParams>,
+  deck: CustomDeck
+): [() => T, () => Promise<boolean>] {
   optionsContainer.innerHTML = "";
   optionsContainer.append(...instance.getHTML());
-  return [() => instance.getValue(), () => instance.validate()];
+  return [() => instance.getValue(), () => instance.validate({ deck })];
 }
 
 function setupBackButton(decksRoot: HTMLElement, deck: CustomDeck) {

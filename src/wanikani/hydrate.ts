@@ -1,7 +1,7 @@
 import { WKItem, WKKanjiItem, WKRadicalItem, WKVocabularyItem } from ".";
 
 export function hydrateWKItem(item: WKItem) {
-  switch (item.type) {
+  switch ((item as WKItem).type) {
     case "radical":
       WKRadicalItem.hydrate(item as WKRadicalItem);
       break;

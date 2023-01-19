@@ -1,6 +1,7 @@
-import { WKRadicalSubject } from "../storage/wkapi";
-import { StorageHandler } from "../storageHandler";
+import { CustomDeck } from "../storage/customDeck";
+import { fetchSubjects, WKRadicalSubject } from "../storage/wkapi";
 import { AuxiliaryMeaning, WKRelationship } from "./common";
+import { fromSubject } from "./fromSubject";
 import { WKItem } from "./item";
 import {
   WKExportItem,
@@ -14,6 +15,7 @@ import { WKSrsData } from "./srsData";
 export class WKRadicalItem extends WKItem {
   constructor(
     id: number,
+    deckId: number,
     english: [string, ...string[]],
     characters: string,
     auxiliaryMeanings: AuxiliaryMeaning[],
@@ -24,6 +26,7 @@ export class WKRadicalItem extends WKItem {
   ) {
     super(
       id,
+      deckId,
       "radical",
       english,
       characters,
@@ -48,14 +51,14 @@ export class WKRadicalItem extends WKItem {
     };
   }
 
-  async getLessonData(): Promise<WKRadicalLessonItem> {
+  async getLessonData(parent: CustomDeck): Promise<WKRadicalLessonItem> {
     return {
       en: this.english,
       id: this.id,
       rad: this.characters,
       mmne: this.meaningMnemonic,
       type: "Radical",
-      kanji: await this.mapKanji(),
+      kanji: await this.mapKanji(parent),
       category: "Radical",
       characters: this.characters,
       auxiliary_meanings: this.auxiliaryMeanings,
@@ -77,26 +80,18 @@ export class WKRadicalItem extends WKItem {
     };
   }
 
-  async getExportData(wkItems: WKItem[]): Promise<WKRadicalExportItem> {
+  getExportData(): WKRadicalExportItem {
     return {
       ...this.getBaseExportData(),
       characterImageUrl: this.characterImageUrl,
-      kanji: wkItems
-        .filter((item) => this.kanji.includes(item.getID()))
-        .map((item) => item.getCharacters()),
+      kanji: this.kanji,
     } as WKRadicalExportItem;
   }
 
-  static async fromExportData(
-    id: number,
-    data: WKRadicalExportItem,
-    getIdFromCharacter: (
-      character: string,
-      type: "radical" | "kanji" | "vocabulary"
-    ) => number
-  ): Promise<WKRadicalItem> {
+  static fromExportData(id: number, data: WKRadicalExportItem): WKRadicalItem {
     return new WKRadicalItem(
       id,
+      data.deckId,
       data.english,
       data.characters,
       data.auxiliaryMeanings,
@@ -110,7 +105,7 @@ export class WKRadicalItem extends WKItem {
       },
       data.meaningMnemonic,
       data.characterImageUrl,
-      data.kanji.map((character) => getIdFromCharacter(character, "kanji"))
+      data.kanji
     );
   }
 
@@ -126,16 +121,21 @@ export class WKRadicalItem extends WKItem {
     };
   }
 
-  async mapKanji(): Promise<WKRadicalKanji[]> {
-    const kanji = (await StorageHandler.getInstance().getAllItemsFromIds(
-      this.kanji
-    )) as WKKanjiItem[];
-    return kanji.map((kanji) => kanji.getRadicalKanjiData());
+  async mapKanji(parent: CustomDeck): Promise<WKRadicalKanji[]> {
+    return (await parent.mapRelatedItems(this.kanji)).map((item) => {
+      return (item as WKKanjiItem).getRadicalKanjiData();
+    });
   }
 
   static hydrate(radical: WKRadicalItem): void {
     Object.setPrototypeOf(radical, WKRadicalItem.prototype);
     WKSrsData.hydrate(radical.srs);
+  }
+
+  updateFromItem(item: WKRadicalItem) {
+    super.updateFromItem(item);
+    this.characterImageUrl = item.characterImageUrl;
+    this.kanji = item.kanji;
   }
 
   getValue(id: string): any {
@@ -172,6 +172,7 @@ export class WKRadicalItem extends WKItem {
   static fromSubject(subject: WKRadicalSubject): WKRadicalItem {
     return new WKRadicalItem(
       subject.id,
+      subject.id,
       subject.meanings
         .sort((a, _) => (a.primary ? -1 : 1))
         .map((meaning) => meaning.meaning) as [string, ...string[]],
@@ -190,6 +191,40 @@ export class WKRadicalItem extends WKItem {
       null,
       subject.amalgamation_subject_ids
     );
+  }
+
+  clone(deckId: number, id: number): WKRadicalItem {
+    return new WKRadicalItem(
+      id,
+      deckId,
+      this.english,
+      this.characters,
+      this.auxiliaryMeanings,
+      this.relationships,
+      this.meaningMnemonic,
+      this.characterImageUrl,
+      this.kanji
+    );
+  }
+
+  removeRelated(deckId: number) {
+    this.kanji = this.kanji.filter((id) => id !== deckId);
+  }
+
+  addRelatedKanji(deckId: number) {
+    this.kanji.push(deckId);
+  }
+
+  fixUpRelated(deck: CustomDeck) {
+    this.kanji = this.kanji
+      .map(
+        (id) =>
+          deck
+            .getItems()
+            .find((item) => item.getID() === id)
+            ?.getDeckId() ?? undefined
+      )
+      .filter((id) => id !== undefined) as number[];
   }
 }
 
@@ -219,7 +254,7 @@ export interface WKRadicalJsonItem extends WKJsonItem {
 export interface WKRadicalExportItem extends WKExportItem {
   type: "rad";
   characterImageUrl: string | null;
-  kanji: string[];
+  kanji: number[];
 }
 
 export interface WKRadicalKanji {

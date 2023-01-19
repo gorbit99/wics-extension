@@ -1,3 +1,4 @@
+import { createAlert } from "../components/alert";
 import { ProgressManager } from "../ProgressManager";
 import { CustomDeck } from "../storage/customDeck";
 import { StorageHandler } from "../storageHandler";
@@ -19,7 +20,7 @@ export async function renderImportDeck(decksRoot: HTMLElement) {
     ".import-deck-option-group"
   ) as HTMLElement;
 
-  let instance: FieldGroupInstance<any> = await forms.exportedDeck
+  let instance: FieldGroupInstance<any, undefined> = await forms.exportedDeck
     .form()
     .render();
   formContainer.append(...instance.getHTML());
@@ -37,7 +38,7 @@ export async function renderImportDeck(decksRoot: HTMLElement) {
     ".import-deck-import-button"
   ) as HTMLButtonElement;
   importButton.addEventListener("click", async () => {
-    if (!instance.validate()) {
+    if (!instance.validate(undefined)) {
       return;
     }
     const promise = importer(instance.getValue());
@@ -46,6 +47,50 @@ export async function renderImportDeck(decksRoot: HTMLElement) {
       "Importing deck..."
     );
     const result = await promise;
+
+    const sameId =
+      (await StorageHandler.getInstance().getDeckById(result.getId())) ??
+      (await StorageHandler.getInstance().getDeckByName(result.getName()));
+    if (sameId) {
+      const message = sameId.isMoreRecentThan(result)
+        ? "A deck with same ID already exists and it seems more recent. " +
+        "Do you want to try to update it, or make a clone?"
+        : "There seems to be a deck with the same ID already. " +
+        "Do you want to update it or make a clone?";
+
+      createAlert({
+        title: "Update Deck",
+        message,
+        buttons: [
+          {
+            text: "Cancel",
+            handler: () => true,
+            style: "secondary",
+          },
+          {
+            text: "Update",
+            handler: async () => {
+              await StorageHandler.getInstance().updateDeck(result);
+              return true;
+            },
+            style: "primary",
+          },
+          {
+            text: "Clone",
+            handler: async () => {
+              result.setName(result.getName() + " (clone)");
+              result.setId(`${result.getId()} (clone)`);
+              await StorageHandler.getInstance().addNewDeck(result);
+              return true;
+            },
+            style: "primary",
+          },
+        ],
+        afterClosing: () => renderDeckList(decksRoot),
+      });
+      return;
+    }
+
     await StorageHandler.getInstance().addNewDeck(result);
     renderDeckList(decksRoot);
   });

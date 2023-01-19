@@ -103,7 +103,7 @@ export class GroupedListFieldInstance<
 
   validate(): boolean {
     return this.instances
-      .map((instance) => instance.validate())
+      .map((instance) => instance.validate(undefined))
       .every((x) => x);
   }
 

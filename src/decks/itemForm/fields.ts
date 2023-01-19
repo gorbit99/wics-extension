@@ -6,19 +6,27 @@ type FieldGroupInstanceFields<InputObject> = {
   [key in keyof InputObject]: FieldInstance<InputObject[key]>;
 };
 
-interface FieldGroupConstraints<T extends Record<string, unknown>> {
-  validationCallback?: (value: T) => Partial<Record<keyof T, string>>;
+interface FieldGroupConstraints<
+  T extends Record<string, unknown>,
+  ValidationParams extends Record<string, any> | undefined = undefined
+> {
+  validationCallback?: (
+    value: T,
+    validationParams: ValidationParams
+  ) => Promise<Partial<Record<keyof T, string>>>;
 }
-
-export class FieldGroupRenderer<T extends Record<string, any>> {
+export class FieldGroupRenderer<
+  T extends Record<string, any>,
+  ValidationParams extends Record<string, any> | undefined = undefined
+> {
   constructor(
     private fields: FieldGroupRendererFields<T>,
-    private constraints: FieldGroupConstraints<T> = {}
+    private constraints: FieldGroupConstraints<T, ValidationParams>
   ) {}
 
   async render(
     value?: T | ((key: keyof T) => T[typeof key] | Promise<T[typeof key]>)
-  ): Promise<FieldGroupInstance<T>> {
+  ): Promise<FieldGroupInstance<T, ValidationParams>> {
     const fields = Object.fromEntries(
       await Promise.all(
         Object.entries(this.fields).map(async ([key, field]) => [
@@ -30,7 +38,10 @@ export class FieldGroupRenderer<T extends Record<string, any>> {
       )
     );
 
-    return new FieldGroupInstance<T>(fields, this.constraints);
+    return new FieldGroupInstance<T, ValidationParams>(
+      fields,
+      this.constraints
+    );
   }
 }
 
@@ -39,10 +50,13 @@ type OnChangeCallback<T extends Record<string, any>, Key extends keyof T> = (
   value: T[Key]
 ) => void;
 
-export class FieldGroupInstance<T extends Record<string, any>> {
+export class FieldGroupInstance<
+  T extends Record<string, any>,
+  ValidationParams extends Record<string, any> | undefined = undefined
+> {
   constructor(
     private fields: FieldGroupInstanceFields<T>,
-    private constraints: FieldGroupConstraints<T>
+    private constraints: FieldGroupConstraints<T, ValidationParams>
   ) {
     Object.entries(this.fields).forEach(([key, field]) => {
       field.onChange((value: T[typeof key]) =>
@@ -65,17 +79,22 @@ export class FieldGroupInstance<T extends Record<string, any>> {
     ) as T;
   }
 
-  validate(): boolean {
-    if (
-      !Object.values(this.fields)
-        .map((field) => field.validate())
-        .every((v) => v)
-    ) {
+  async validate(validationParams: ValidationParams): Promise<boolean> {
+    const validationResults = await Promise.all(
+      Object.values(this.fields).map(
+        async (field) => await field.validate(validationParams)
+      )
+    );
+
+    if (!validationResults.every((v) => v)) {
       return false;
     }
 
     const value = this.getValue();
-    const validationErrors = this.constraints.validationCallback?.(value);
+    const validationErrors = await this.constraints.validationCallback?.(
+      value,
+      validationParams
+    );
     if (!validationErrors) {
       return true;
     }
@@ -117,7 +136,7 @@ export abstract class FieldInstance<Type> {
 
   abstract getHTML(): HTMLElement | HTMLElement[] | undefined;
   abstract getValue(): Type;
-  abstract validate(): boolean;
+  abstract validate(): Promise<boolean> | boolean;
 
   onChange(listener: (value: Type) => void | Promise<void>) {
     this.onChangeListeners.push(listener);

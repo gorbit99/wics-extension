@@ -209,8 +209,8 @@ export async function makeWKRequest(
       "Wanikani-Revision": "20170710",
       ...(updatedAfter
         ? {
-          "If-Modified-Since": new Date(updatedAfter).toUTCString(),
-        }
+            "If-Modified-Since": new Date(updatedAfter).toUTCString(),
+          }
         : {}),
     },
   });

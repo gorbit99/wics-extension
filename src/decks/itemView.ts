@@ -21,6 +21,35 @@ export async function renderItemView(
     renderDeckView(deck, decksRoot);
   });
 
+  const deactivateButtonIcon = decksRoot.querySelector(
+    ".item-view-deactivate-icon"
+  ) as HTMLElement;
+  const deactivateButtonText = decksRoot.querySelector(
+    ".item-view-deactivate-text"
+  ) as HTMLElement;
+  if (!item.isActive()) {
+    deactivateButtonIcon.classList.replace("fa-stop", "fa-play");
+    deactivateButtonText.textContent = "Activate";
+  }
+
+  const deactivateButton = decksRoot.querySelector(
+    ".item-view-deactivate-button"
+  ) as HTMLElement;
+  deactivateButton.addEventListener("click", async () => {
+    item.setActive(!item.isActive());
+    await StorageHandler.getInstance().swapDeck(deck.getName(), deck);
+    deck = (await StorageHandler.getInstance().getDeckByName(deck.getName()))!;
+    statusField.textContent = item.isActive() ? "Active" : "Inactive";
+    if (!item.isActive()) {
+      deactivateButtonIcon.classList.replace("fa-stop", "fa-play");
+    } else {
+      deactivateButtonIcon.classList.replace("fa-play", "fa-stop");
+    }
+    deactivateButtonText.textContent = item.isActive()
+      ? "Deactivate"
+      : "Activate";
+  });
+
   const viewFields = {
     radical: radicalViewFields,
     kanji: kanjiViewFields,
@@ -30,13 +59,13 @@ export async function renderItemView(
   const itemGroupInstance = await viewFields.render(async (id: string) => {
     const value = item.getValue(id);
     if (id === "kanji" || id == "radicals" || id == "vocabulary") {
-      const promise = StorageHandler.getInstance().getAllItemsFromIds(value);
+      const promise = deck.mapRelatedItems(value);
       ProgressManager.getInstance().handleProgressEvent(
         promise,
         "Getting items from the WK server..."
       );
       const items = await promise;
-      return items.map((item) => item.getValue("characters"));
+      return items.map((item) => item.getCharacters());
     }
     return item.getValue(id);
   });
@@ -48,7 +77,7 @@ export async function renderItemView(
   });
 
   saveButton.addEventListener("click", async () => {
-    if (!itemGroupInstance.validate()) {
+    if (!(await itemGroupInstance.validate({ deck }))) {
       return;
     }
     const value = itemGroupInstance.getValue();
@@ -58,7 +87,7 @@ export async function renderItemView(
       "Saving item..."
     );
     await promise;
-    await StorageHandler.getInstance().updateDeck(deck.getName(), deck);
+    await StorageHandler.getInstance().swapDeck(deck.getName(), deck);
     deck = (await StorageHandler.getInstance().getDeckByName(deck.getName()))!;
 
     saveButton.classList.remove("active");
@@ -80,6 +109,11 @@ export async function renderItemView(
     vocabulary: "Vocabulary",
   }[item.type];
 
+  const statusField = decksRoot.querySelector(
+    "[data-field='status']"
+  ) as HTMLElement;
+  statusField.textContent = item.isActive() ? "Active" : "Inactive";
+
   const deleteButton = decksRoot.querySelector(
     ".item-view-delete-button"
   ) as HTMLElement;
@@ -98,7 +132,7 @@ export async function renderItemView(
           text: "Delete",
           handler: async () => {
             deck.removeItem(item.getID());
-            StorageHandler.getInstance().updateDeck(deck.getName(), deck);
+            StorageHandler.getInstance().swapDeck(deck.getName(), deck);
             renderDeckView(deck, decksRoot);
             return true;
           },

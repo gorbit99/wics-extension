@@ -134,7 +134,7 @@ export async function importCsv(
           ?.getID() ?? 0;
 
       await Promise.all(
-        csvData.map(async (row) => {
+        csvData.map(async (row, i) => {
           const type =
             parameters.itemTypes === "field"
               ? row[fieldIndices.type]!
@@ -144,6 +144,7 @@ export async function importCsv(
             row,
             fieldIndices,
             nextId,
+            -i - 1,
             listSeparator,
             getIdFromCharacter
           );
@@ -163,6 +164,7 @@ async function parseRow(
   row: string[],
   fieldIndices: Record<keyof typeof wkItemFields, number>,
   id: number,
+  deckId: number,
   listSeparator: string,
   getIdFromCharacter: (
     character: string,
@@ -188,6 +190,7 @@ async function parseRow(
     case "radical": {
       return new WKRadicalItem(
         id,
+        deckId,
         english,
         row[fieldIndices.characters]!,
         auxiliaryMeanings,
@@ -219,6 +222,7 @@ async function parseRow(
 
       return new WKKanjiItem(
         id,
+        deckId,
         english,
         row[fieldIndices.characters]!,
         row[fieldIndices.onyomi]?.split(listSeparator) ?? [],
@@ -264,6 +268,7 @@ async function parseRow(
 
       return new WKVocabularyItem(
         id,
+        deckId,
         english,
         row[fieldIndices.characters]!,
         [],

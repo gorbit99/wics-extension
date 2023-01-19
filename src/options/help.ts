@@ -24,6 +24,10 @@ const helpText = {
     "as the name of the field, while the Hover Text options display a " +
     "generic field name, and put more examples into a hover text, separated " +
     "by their specified character.",
+  updateMissingItemHandling:
+    "The action we should take for items, that are missing from the newer " +
+    'version, when updating a deck. "Keep Originals" will keep them, while ' +
+    '"Delete Originals" will remove them from the deck.',
 };
 
 export function setupHelpElements(optionsRoot: HTMLElement) {

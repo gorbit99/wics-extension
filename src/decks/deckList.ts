@@ -23,8 +23,9 @@ export async function renderDeckList(decksRoot: HTMLElement) {
       true
     ) as HTMLElement;
     deckElement.querySelector(".deck-name")!.textContent = deck.getName();
-    deckElement.querySelector(".deck-count")!.textContent = `${deck.getItems().length
-      } item${deck.getItems().length === 1 ? "" : "s"}`;
+    deckElement.querySelector(".deck-count")!.textContent = `${
+      deck.getItems().length
+    } item${deck.getItems().length === 1 ? "" : "s"}`;
 
     decksList.append(deckElement);
     deckElement.addEventListener("click", () =>
@@ -139,7 +140,7 @@ function createNewDeckElement(decksList: HTMLElement, decksRoot: HTMLElement) {
 
 function createProgressGradient(deck: CustomDeck) {
   const progress = deck.generateLevelBreakdown();
-  const itemCount = deck.getItems().length;
+  const itemCount = deck.getItems().filter((item) => item.isActive()).length;
 
   if (itemCount === 0) {
     return "conic-gradient(var(--wanikani-locked-color) 0deg 360deg)";

@@ -1,3 +1,4 @@
+import { CustomDeck } from "../storage/customDeck";
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, WKRelationship } from "./common";
 import {
@@ -10,9 +11,11 @@ import { WKSrsData } from "./srsData";
 
 export abstract class WKItem {
   protected srs: WKSrsData;
+  private active = true;
 
   constructor(
     protected id: number,
+    protected deckId: number,
     public type: "radical" | "kanji" | "vocabulary",
     protected english: [string, ...string[]],
     protected characters: string,
@@ -30,13 +33,14 @@ export abstract class WKItem {
     this.srs = new WKSrsData();
   }
 
-  abstract getReviewData(): Promise<WKReviewItem>;
-  abstract getLessonData(): Promise<WKLessonItem>;
+  abstract getReviewData(parent: CustomDeck): Promise<WKReviewItem>;
+  abstract getLessonData(parent: CustomDeck): Promise<WKLessonItem>;
   abstract getJsonData(): Promise<WKJsonItem>;
-  abstract getExportData(wkItems: WKItem[]): Promise<WKExportItem>;
+  abstract getExportData(): WKExportItem;
 
   protected getBaseExportData(): WKExportItem {
     return {
+      deckId: this.deckId,
       type: {
         radical: "rad" as const,
         kanji: "kan" as const,
@@ -57,12 +61,20 @@ export abstract class WKItem {
     return this.id;
   }
 
+  getDeckId(): number {
+    return this.deckId;
+  }
+
+  setDeckId(deckId: number) {
+    this.deckId = deckId;
+  }
+
   isReview(): boolean {
-    return this.srs.isReview();
+    return this.isActive() && this.srs.isReview();
   }
 
   isLesson(): boolean {
-    return this.srs.isLesson();
+    return this.isActive() && this.srs.isLesson();
   }
 
   review(mistakes: number) {
@@ -89,6 +101,14 @@ export abstract class WKItem {
     return undefined;
   }
 
+  isActive(): boolean {
+    return this.active ?? true;
+  }
+
+  setActive(active: boolean) {
+    this.active = active;
+  }
+
   async updateData(data: Record<string, any>): Promise<void> {
     for (const key in data) {
       if (key === "radicals") {
@@ -110,6 +130,14 @@ export abstract class WKItem {
       }
       this.setValue(key, data[key]);
     }
+  }
+
+  updateFromItem(item: WKItem) {
+    this.english = item.english;
+    this.characters = item.characters;
+    this.relationships = item.relationships;
+    this.auxiliaryMeanings = item.auxiliaryMeanings;
+    this.meaningMnemonic = item.meaningMnemonic;
   }
 
   getValue(id: string): any {
@@ -160,4 +188,10 @@ export abstract class WKItem {
   completeLesson() {
     this.srs.review(0);
   }
+
+  abstract clone(deckId: number, id: number): WKItem;
+
+  abstract removeRelated(deckId: number): void;
+
+  abstract fixUpRelated(deck: CustomDeck): void;
 }

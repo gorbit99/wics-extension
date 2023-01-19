@@ -114,7 +114,7 @@ export async function importAnki(
           ?.getID() ?? 0;
 
       await Promise.all(
-        csvData.map(async (row) => {
+        csvData.map(async (row, i) => {
           const type =
             parameters.itemTypes === "field"
               ? row[fieldIndices.type]!
@@ -124,6 +124,7 @@ export async function importAnki(
             row,
             fieldIndices,
             nextId,
+            -i - 1,
             getIdFromCharacter
           );
           nextId++;
@@ -142,6 +143,7 @@ async function parseRow(
   row: string[],
   fieldIndices: Record<keyof typeof wkItemFields, number>,
   id: number,
+  deckId: number,
   getIdFromCharacter: (
     character: string,
     type: "radical" | "kanji" | "vocabulary"
@@ -165,6 +167,7 @@ async function parseRow(
     case "radical": {
       return new WKRadicalItem(
         id,
+        deckId,
         english,
         row[fieldIndices.characters]!,
         auxiliaryMeanings,
@@ -196,6 +199,7 @@ async function parseRow(
 
       return new WKKanjiItem(
         id,
+        deckId,
         english,
         row[fieldIndices.characters]!,
         row[fieldIndices.onyomi]?.split(",") ?? [],
@@ -241,6 +245,7 @@ async function parseRow(
 
       return new WKVocabularyItem(
         id,
+        deckId,
         english,
         row[fieldIndices.characters]!,
         [],

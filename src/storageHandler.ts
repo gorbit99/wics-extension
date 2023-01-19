@@ -8,7 +8,7 @@ import { fromSubject } from "./wanikani/fromSubject";
 export class StorageHandler {
   private static instance: StorageHandler;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): StorageHandler {
     if (!StorageHandler.instance) {
@@ -22,9 +22,11 @@ export class StorageHandler {
   async getCustomDecks(): Promise<CustomDeck[]> {
     const database = await browser.storage.local.get("customDecks");
     const decks = database.customDecks ?? [];
-    decks.forEach((deck: CustomDeck) => {
-      CustomDeck.hydrate(deck);
-    });
+    await Promise.all(
+      decks.map(async (deck: CustomDeck) => {
+        CustomDeck.hydrate(deck);
+      })
+    );
     decks.forEach((deck: CustomDeck) => {
       this.customDeckCache.set(deck.getName(), deck);
     });
@@ -53,7 +55,7 @@ export class StorageHandler {
         return deck
           .getItems()
           .filter((item) => item.isLesson())
-          .map((item) => item.getLessonData());
+          .map((item) => item.getLessonData(deck));
       })
     );
   }
@@ -61,10 +63,12 @@ export class StorageHandler {
   async getReviewItemData(items: number[]): Promise<WKReviewItem[]> {
     const decks = await this.getCustomDecks();
     return Promise.all(
-      decks
-        .flatMap((deck) => deck.getItems())
-        .filter((item) => items.includes(item.getID()))
-        .map((item) => item.getReviewData())
+      decks.flatMap((deck) =>
+        deck
+          .getItems()
+          .filter((item) => items.includes(item.getID()))
+          .map((item) => item.getReviewData(deck))
+      )
     );
   }
 
@@ -155,7 +159,20 @@ export class StorageHandler {
     return decks.find((deck) => deck.getName() === name);
   }
 
-  async updateDeck(originalName: string, value: CustomDeck): Promise<void> {
+  async getDeckById(id: string): Promise<CustomDeck | undefined> {
+    const decks = await this.getCustomDecks();
+    return decks.find((deck) => deck.getId() === id);
+  }
+
+  async updateDeck(deck: CustomDeck): Promise<void> {
+    const decks = await this.getCustomDecks();
+    const index = decks.findIndex((d) => d.getId() === deck.getId());
+    await decks[index]?.updateFromDeck(deck);
+    this.customDeckCache.set(deck.getName(), decks[index]!);
+    await browser.storage.local.set({ customDecks: decks });
+  }
+
+  async swapDeck(originalName: string, value: CustomDeck): Promise<void> {
     const decks = await this.getCustomDecks();
     const index = decks.findIndex((deck) => deck.getName() === originalName);
     decks[index] = value;
@@ -191,7 +208,7 @@ export class StorageHandler {
           return true;
         }
         deckItem.completeLesson();
-        this.updateDeck(deck.getName(), deck);
+        this.swapDeck(deck.getName(), deck);
         return false;
       });
     });
@@ -208,7 +225,7 @@ export class StorageHandler {
           return true;
         }
         deckItem.review(entry[1][0] + entry[1][1]);
-        this.updateDeck(deck.getName(), deck);
+        this.swapDeck(deck.getName(), deck);
         return false;
       });
     });

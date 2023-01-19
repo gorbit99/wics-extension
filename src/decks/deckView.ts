@@ -97,7 +97,7 @@ async function saveEdit(
       break;
   }
 
-  await StorageHandler.getInstance().updateDeck(originalName, deck);
+  await StorageHandler.getInstance().swapDeck(originalName, deck);
   setupEditableField(valueElement, deck);
 }
 
@@ -262,15 +262,19 @@ function handlePaginationSetup(decksRoot: HTMLElement, deck: CustomDeck) {
     currentPage = page;
     renderButtons();
 
-    firstButton.disabled = currentPage === 1;
-    prevButton.disabled = currentPage === 1;
-    nextButton.disabled = currentPage === pageCount;
-    lastButton.disabled = currentPage === pageCount;
+    firstButton.disabled = currentPage <= 1;
+    prevButton.disabled = currentPage <= 1;
+    nextButton.disabled = currentPage >= pageCount;
+    lastButton.disabled = currentPage >= pageCount;
 
-    infoCount.textContent = `${(currentPage - 1) * perPage + 1} - ${Math.min(
-      currentPage * perPage,
-      itemCount
-    )} of ${itemCount}`;
+    if (itemCount === 0) {
+      infoCount.textContent = "0 - 0 of 0";
+    } else {
+      infoCount.textContent = `${(currentPage - 1) * perPage + 1} - ${Math.min(
+        currentPage * perPage,
+        itemCount
+      )} of ${itemCount}`;
+    }
 
     renderItems(deck, items, decksRoot, perPage * (currentPage - 1), perPage);
   };
@@ -326,9 +330,9 @@ function renderItem(
   clone.querySelector("[data-field='english']")!.textContent = item
     .getEnglish()
     .join(", ");
-  clone.querySelector("[data-field='srsLevel']")!.textContent = item
-    .getSrs()
-    .srsDataToText();
+  clone.querySelector("[data-field='srsLevel']")!.textContent = item.isActive()
+    ? item.getSrs().srsDataToText()
+    : "Inactive";
 
   clone.addEventListener("click", () => {
     renderItemView(deck, item, decksRoot);
