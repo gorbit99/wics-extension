@@ -8,15 +8,13 @@ export type BroadSrsLevel =
   | "burned";
 
 export class WKSrsData {
-  private stage: number;
-  private lastReviewDate: number | null;
+  private passed = false;
 
-  constructor();
-  constructor(stage: number, lastReviewDate: number);
-  constructor(stage?: number, lastReviewDate?: number) {
-    this.stage = stage ?? 0;
-    this.lastReviewDate = lastReviewDate ?? null;
-  }
+  constructor(
+    private stage: number = 0,
+    private lastReviewDate: number | null = null,
+    private level: number = 1
+  ) {}
 
   getStage(): number {
     return this.stage;
@@ -24,6 +22,14 @@ export class WKSrsData {
 
   getLastReviewDate(): number | null {
     return this.lastReviewDate;
+  }
+
+  getLevel(): number {
+    return this.level;
+  }
+
+  setLevel(level: number) {
+    this.level = level;
   }
 
   getSrsStageLength(): number {
@@ -60,12 +66,12 @@ export class WKSrsData {
     return this.stage === 9;
   }
 
-  isReview(): boolean {
-    return this.stage > 0;
+  isReview(level: number | undefined = undefined): boolean {
+    return (!level || level >= this.level) && this.stage > 0;
   }
 
-  isLesson(): boolean {
-    return this.stage === 0;
+  isLesson(level: number | undefined = undefined): boolean {
+    return (!level || level >= this.level) && this.stage === 0;
   }
 
   isApprentice(): boolean {
@@ -106,6 +112,9 @@ export class WKSrsData {
   review(mistakes: number) {
     if (mistakes === 0) {
       this.stage++;
+      if (this.stage >= 5) {
+        this.passed = true;
+      }
     } else {
       const stageChanges = Math.ceil(mistakes / 2);
       const adjustmentSteps = this.stage >= 5 ? 2 : 1;
@@ -132,7 +141,13 @@ export class WKSrsData {
     );
   }
 
-  static hydrate(data: any) {
+  static hydrate(data: WKSrsData) {
     Object.setPrototypeOf(data, WKSrsData.prototype);
+
+    data.passed ??= data.level >= 5;
+  }
+
+  isPassed(): boolean {
+    return this.passed;
   }
 }

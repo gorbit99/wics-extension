@@ -1,7 +1,6 @@
 import { CustomDeck } from "../storage/customDeck";
-import { fetchSubjects, WKRadicalSubject } from "../storage/wkapi";
+import { WKRadicalSubject } from "../storage/wkapi/subject";
 import { AuxiliaryMeaning, WKRelationship } from "./common";
-import { fromSubject } from "./fromSubject";
 import { WKItem } from "./item";
 import {
   WKExportItem,
@@ -16,6 +15,7 @@ export class WKRadicalItem extends WKItem {
   constructor(
     id: number,
     deckId: number,
+    level: number,
     english: [string, ...string[]],
     characters: string,
     auxiliaryMeanings: AuxiliaryMeaning[],
@@ -27,6 +27,7 @@ export class WKRadicalItem extends WKItem {
     super(
       id,
       deckId,
+      level,
       "radical",
       english,
       characters,
@@ -92,6 +93,7 @@ export class WKRadicalItem extends WKItem {
     return new WKRadicalItem(
       id,
       data.deckId,
+      data.level ?? 1,
       data.english,
       data.characters,
       data.auxiliaryMeanings,
@@ -122,9 +124,11 @@ export class WKRadicalItem extends WKItem {
   }
 
   async mapKanji(parent: CustomDeck): Promise<WKRadicalKanji[]> {
-    return (await parent.mapRelatedItems(this.kanji)).map((item) => {
+    const related = (await parent.mapRelatedItems(this.kanji)).map((item) => {
       return (item as WKKanjiItem).getRadicalKanjiData();
     });
+
+    return related;
   }
 
   static hydrate(radical: WKRadicalItem): void {
@@ -173,6 +177,7 @@ export class WKRadicalItem extends WKItem {
     return new WKRadicalItem(
       subject.id,
       subject.id,
+      subject.level,
       subject.meanings
         .sort((a, _) => (a.primary ? -1 : 1))
         .map((meaning) => meaning.meaning) as [string, ...string[]],
@@ -197,6 +202,7 @@ export class WKRadicalItem extends WKItem {
     return new WKRadicalItem(
       id,
       deckId,
+      this.getSrs().getLevel(),
       this.english,
       this.characters,
       this.auxiliaryMeanings,
@@ -225,6 +231,10 @@ export class WKRadicalItem extends WKItem {
             ?.getDeckId() ?? undefined
       )
       .filter((id) => id !== undefined) as number[];
+  }
+
+  isUnlocked(deck: CustomDeck): Promise<boolean> {
+    return super.isUnlocked(deck);
   }
 }
 

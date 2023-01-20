@@ -2,13 +2,13 @@ import { CustomDeck } from "./storage/customDeck";
 import browser from "webextension-polyfill";
 import { WKItem } from "./wanikani";
 import { WKJsonItem, WKLessonItem, WKReviewItem } from "./wanikani/item/types";
-import { fetchSubjects } from "./storage/wkapi";
 import { fromSubject } from "./wanikani/fromSubject";
+import { SubjectHandler } from "./storage/wkapi/subject";
 
 export class StorageHandler {
   private static instance: StorageHandler;
 
-  private constructor() { }
+  private constructor() {}
 
   static getInstance(): StorageHandler {
     if (!StorageHandler.instance) {
@@ -43,21 +43,30 @@ export class StorageHandler {
   async getPendingReviewIds(): Promise<number[]> {
     const decks = await this.getCustomDecks();
     return decks
-      .flatMap((deck) => deck.getItems())
-      .filter((item) => item.isPendingReview())
+      .flatMap((deck) => deck.getPendingReviewItems())
       .map((item) => item.getID());
   }
 
   async getPendingLessons(): Promise<WKLessonItem[]> {
     const decks = await this.getCustomDecks();
-    return Promise.all(
-      decks.flatMap((deck) => {
-        return deck
-          .getItems()
-          .filter((item) => item.isLesson())
-          .map((item) => item.getLessonData(deck));
+    const lessons = await Promise.all(
+      decks.map(async (deck) => {
+        const potentialLessons = deck.getLessons();
+        const unlocked = await Promise.all(
+          potentialLessons.map(async (item) => item.isUnlocked(deck))
+        );
+
+        const actualLessons = potentialLessons.filter((_, i) => unlocked[i]);
+
+        const lessonData = await Promise.all(
+          actualLessons.map((item) => item.getLessonData(deck))
+        );
+
+        return lessonData;
       })
     );
+
+    return lessons.flat();
   }
 
   async getReviewItemData(items: number[]): Promise<WKReviewItem[]> {
@@ -86,7 +95,7 @@ export class StorageHandler {
   }
 
   async getAllItemsFromIds(ids: number[]): Promise<WKItem[]> {
-    const wanikaniSubjects = await fetchSubjects(ids);
+    const wanikaniSubjects = await SubjectHandler.getInstance().fetchItems(ids);
 
     const wkItems = await Promise.all(
       wanikaniSubjects.map((subject) => fromSubject(subject))
@@ -98,7 +107,7 @@ export class StorageHandler {
   }
 
   async radicalsToIds(radicals: string[]): Promise<number[]> {
-    const wanikaniIds = (await fetchSubjects())
+    const wanikaniIds = (await SubjectHandler.getInstance().fetchItems())
       // TODO: handle image radicals
       .filter(
         (item) =>
@@ -118,7 +127,7 @@ export class StorageHandler {
   }
 
   async kanjiToIds(kanji: string[]): Promise<number[]> {
-    const wanikaniIds = (await fetchSubjects())
+    const wanikaniIds = (await SubjectHandler.getInstance().fetchItems())
       .filter((item) => item.object === "kanji" && kanji.includes(item.slug))
       .map((item) => item.id);
     const decks = await this.getCustomDecks();
@@ -133,7 +142,7 @@ export class StorageHandler {
   }
 
   async vocabularyToIds(vocabulary: string[]): Promise<number[]> {
-    const wanikaniIds = (await fetchSubjects())
+    const wanikaniIds = (await SubjectHandler.getInstance().fetchItems())
       .filter(
         (item) => item.object === "vocabulary" && vocabulary.includes(item.slug)
       )
@@ -225,6 +234,7 @@ export class StorageHandler {
           return true;
         }
         deckItem.review(entry[1][0] + entry[1][1]);
+        deck.updateDeckLevel();
         this.swapDeck(deck.getName(), deck);
         return false;
       });

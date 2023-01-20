@@ -13,12 +13,13 @@ import {
 import { fromSubject } from "../wanikani/fromSubject";
 import { WKItem } from "../wanikani/item";
 import { WKExportItem } from "../wanikani/item/types";
-import { fetchSubjects, WKSubject } from "./wkapi";
+import { SubjectHandler } from "./wkapi/subject";
 import { fetchUser } from "./wkapi/user";
 
 export class CustomDeck {
   private items: WKItem[] = [];
   private description: string = "";
+  private currentLevel = 1;
 
   constructor(
     private name: string,
@@ -41,6 +42,10 @@ export class CustomDeck {
 
   setName(name: string) {
     this.name = name;
+  }
+
+  getLevel(): number {
+    return this.currentLevel;
   }
 
   setId(id: string) {
@@ -76,6 +81,9 @@ export class CustomDeck {
     deck.items.forEach((item) => {
       hydrateWKItem(item);
     });
+    if (deck.getLevel() === undefined) {
+      deck.currentLevel = 1;
+    }
     if (deck.author === undefined) {
       this.fixDeckAuthor(deck);
     }
@@ -83,6 +91,19 @@ export class CustomDeck {
       this.fixDeckId(deck);
       deck.getItems().forEach((item) => item.fixUpRelated(deck));
     }
+
+    deck.items.forEach((item) => {
+      if (item.getSrs().getLevel() === undefined) {
+        item.getSrs().setLevel(1);
+      }
+    });
+  }
+
+  getMaxLevel(): number {
+    return this.getItems().reduce(
+      (max, item) => Math.max(max, item.getSrs().getLevel()),
+      0
+    );
   }
 
   private static async fixDeckAuthor(deck: CustomDeck) {
@@ -159,7 +180,7 @@ export class CustomDeck {
       data.exportDate
     );
     deck.setDescription(data.description);
-    await fetchSubjects();
+    await SubjectHandler.getInstance().fetchItems();
     const nextId = await StorageHandler.getInstance().getNewId();
 
     deck.items = data.items.map((item, id) => {
@@ -217,13 +238,56 @@ export class CustomDeck {
   }
 
   async mapRelatedItems(items: number[]): Promise<WKItem[]> {
-    const wkItems = await fetchSubjects();
-    return items.map((id) => {
-      if (id < 0) {
-        return this.getItems().find((item) => item.getDeckId() === id)!;
+    const customIds = items.filter((id) => id < 0);
+    const wkIds = items.filter((id) => id > 0);
+    const customItems = customIds.map((id) => this.getItemByDeckId(id)!);
+    const wkItems = (await SubjectHandler.getInstance().fetchItems(wkIds)).map(
+      (item) => fromSubject(item)
+    );
+    return [...customItems, ...wkItems];
+  }
+
+  getPendingReviewItems(): WKItem[] {
+    return this.items.filter((item) => item.isPendingReview(this.currentLevel));
+  }
+
+  getLessons(): WKItem[] {
+    return this.items.filter((item) => item.isLesson(this.currentLevel));
+  }
+
+  updateDeckLevel() {
+    const completionRequirement = 0.9;
+
+    const maxLevel = this.getMaxLevel();
+
+    if (this.currentLevel > maxLevel) {
+      return;
+    }
+
+    while (true) {
+      const levelItems = this.items.filter(
+        (item) => item.getSrs().getLevel() == this.currentLevel
+      );
+
+      if (levelItems.length === 0) {
+        this.currentLevel++;
+        continue;
       }
-      return fromSubject(wkItems.find((item) => item.id === id)!);
-    });
+
+      const completed = levelItems.filter((item) =>
+        item.getSrs().isPassed()
+      ).length;
+
+      console.log(completed, levelItems.length, completionRequirement);
+      if (completed / levelItems.length < completionRequirement) {
+        break;
+      }
+      this.currentLevel++;
+
+      if (this.currentLevel > maxLevel) {
+        break;
+      }
+    }
   }
 }
 

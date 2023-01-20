@@ -15,8 +15,8 @@ import {
   WKVocabularyItem,
 } from "../../wanikani";
 import { StorageHandler } from "../../storageHandler";
-import { fetchSubjects } from "../../storage/wkapi";
 import { fromSubject } from "../../wanikani/fromSubject";
+import { SubjectHandler } from "../../storage/wkapi/subject";
 
 interface AnkiParameters {
   deckName: string;
@@ -52,29 +52,32 @@ const wkItemFields = {
 };
 
 export async function ankiFields() {
-  return new FieldGroupRenderer<AnkiParameters>({
-    deckName: new TextFieldRenderer("Deck Name", {
-      minLength: 1,
-    }),
-    file: new FileFieldRenderer("Anki file", { accept: ".txt" }),
-    itemTypes: new SelectFieldRenderer("Item types", {
-      radical: "Radicals",
-      kanji: "Kanji",
-      vocabulary: "Vocabulary",
-      field: "Field",
-    }),
-    fieldValues: new CsvFieldSelectorFieldRenderer<keyof typeof wkItemFields>(
-      "Field values",
-      "file",
-      "separator",
-      wkItemFields,
-      {
-        requiredFields: ["characters", "english"],
-      },
-      true,
-      "\t"
-    ),
-  });
+  return new FieldGroupRenderer<AnkiParameters, undefined>(
+    {
+      deckName: new TextFieldRenderer("Deck Name", {
+        minLength: 1,
+      }),
+      file: new FileFieldRenderer("Anki file", { accept: ".txt" }),
+      itemTypes: new SelectFieldRenderer("Item types", {
+        radical: "Radicals",
+        kanji: "Kanji",
+        vocabulary: "Vocabulary",
+        field: "Field",
+      }),
+      fieldValues: new CsvFieldSelectorFieldRenderer<keyof typeof wkItemFields>(
+        "Field values",
+        "file",
+        "separator",
+        wkItemFields,
+        {
+          requiredFields: ["characters", "english"],
+        },
+        true,
+        "\t"
+      ),
+    },
+    {}
+  );
 }
 
 export async function importAnki(
@@ -99,8 +102,8 @@ export async function importAnki(
 
       let nextId = await StorageHandler.getInstance().getNewId();
 
-      const wkItems = (await fetchSubjects()).map((subject) =>
-        fromSubject(subject)
+      const wkItems = (await SubjectHandler.getInstance().fetchItems()).map(
+        (subject) => fromSubject(subject)
       );
 
       const getIdFromCharacter = (
@@ -168,6 +171,7 @@ async function parseRow(
       return new WKRadicalItem(
         id,
         deckId,
+        1,
         english,
         row[fieldIndices.characters]!,
         auxiliaryMeanings,
@@ -200,6 +204,7 @@ async function parseRow(
       return new WKKanjiItem(
         id,
         deckId,
+        1,
         english,
         row[fieldIndices.characters]!,
         row[fieldIndices.onyomi]?.split(",") ?? [],
@@ -246,6 +251,7 @@ async function parseRow(
       return new WKVocabularyItem(
         id,
         deckId,
+        1,
         english,
         row[fieldIndices.characters]!,
         [],

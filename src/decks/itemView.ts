@@ -73,7 +73,7 @@ export async function renderItemView(
   const saveButton = decksRoot.querySelector(".item-view-save-button")!;
 
   itemGroupInstance.onChange(() => {
-    saveButton.classList.add("active");
+    saveButton.classList.add("visible");
   });
 
   saveButton.addEventListener("click", async () => {
@@ -90,7 +90,7 @@ export async function renderItemView(
     await StorageHandler.getInstance().swapDeck(deck.getName(), deck);
     deck = (await StorageHandler.getInstance().getDeckByName(deck.getName()))!;
 
-    saveButton.classList.remove("active");
+    saveButton.classList.remove("visible");
   });
 
   const optionsContainer = decksRoot.querySelector(

@@ -11,6 +11,7 @@ import { FieldGroupRenderer } from "../itemForm/fields";
 import { checkForMissingRelated } from "./related";
 
 export type Radical = {
+  level: number;
   characters: string;
   english: string[];
   kanji: string[];
@@ -20,6 +21,7 @@ export type Radical = {
 };
 
 const helpText = {
+  level: "The deck level you need to be to unlock this radical.",
   radical:
     "The radical itself. This should be a single character. Image " +
     "radicals aren't supported yet.",
@@ -41,6 +43,14 @@ const helpText = {
 };
 
 const radicalFormConfig: ItemFormConfig<Radical> = {
+  level: {
+    type: "number",
+    name: "Level",
+    constraints: {
+      min: 1,
+    },
+    helpText: helpText.level,
+  },
   characters: {
     type: "text",
     name: "Radical",
@@ -213,6 +223,7 @@ export async function convertToRadical(
   return new WKRadicalItem(
     await StorageHandler.getInstance().getNewId(),
     deckId,
+    radical.level,
     radical.english as [string, ...string[]],
     radical.characters,
     radical.auxiliaryMeanings,

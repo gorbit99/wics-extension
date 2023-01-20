@@ -1,15 +1,12 @@
-import { WKSubjectsRequest } from "./wkapi/subject";
 import browser from "webextension-polyfill";
 import { WKUserRequest } from "./wkapi/user";
-
-export * from "./wkapi/subject";
 
 export interface WKRequest {
   endpoint: string;
   params: Record<string, any>;
 }
 
-type ActualRequest = WKSubjectsRequest | WKUserRequest;
+type ActualRequest = WKUserRequest;
 
 export interface WKResponseItem {
   id: number;

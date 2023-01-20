@@ -19,6 +19,7 @@ interface Audio {
 }
 
 export type Vocabulary = {
+  level: number;
   characters: string;
   english: string[];
   kana: string[];
@@ -35,6 +36,7 @@ export type Vocabulary = {
 };
 
 const helpText = {
+  level: "The deck level you need to be to unlock this vocabulary word.",
   vocab: "The vocabulary word itself.",
   english:
     "The meanings of the word. This will be what needs to be input to pass " +
@@ -78,6 +80,14 @@ const helpText = {
 };
 
 const vocabularyFormConfig: ItemFormConfig<Vocabulary> = {
+  level: {
+    type: "number",
+    name: "Level",
+    helpText: helpText.level,
+    constraints: {
+      min: 1,
+    },
+  },
   characters: {
     type: "text",
     name: "Vocabulary",
@@ -382,6 +392,7 @@ export async function convertToVocabulary(
   return new WKVocabularyItem(
     await StorageHandler.getInstance().getNewId(),
     deckId,
+    vocab.level,
     vocab.english as [string, ...string[]],
     vocab.characters,
     vocab.audio.map((audio) => ({

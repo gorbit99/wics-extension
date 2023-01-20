@@ -119,6 +119,12 @@ function setupEditableField(elem: HTMLElement, deck: CustomDeck) {
       break;
     case "author":
       elem.textContent = deck.getAuthor();
+      break;
+    case "level":
+      const maxLevel = deck.getMaxLevel();
+      const level = Math.min(maxLevel, deck.getLevel());
+      elem.textContent = `${level} (out of ${maxLevel})`;
+      break;
   }
 
   elem.addEventListener("click", () => {
@@ -342,7 +348,7 @@ function renderItem(
 }
 
 async function exportDeck(deck: CustomDeck) {
-  const data = JSON.stringify(await deck.getExportData());
+  const data = JSON.stringify(deck.getExportData());
   const zip = new JSZip();
   zip.file("deck.json", data);
   zip

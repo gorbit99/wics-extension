@@ -8,11 +8,14 @@ interface ExportedDeckParameters {
 }
 
 export function exportedDeckFields() {
-  return new FieldGroupRenderer<ExportedDeckParameters>({
-    file: new FileFieldRenderer("Deck file", {
-      accept: ".deck",
-    }),
-  });
+  return new FieldGroupRenderer<ExportedDeckParameters>(
+    {
+      file: new FileFieldRenderer("Deck file", {
+        accept: ".deck",
+      }),
+    },
+    {}
+  );
 }
 
 export async function importExportedDeck(

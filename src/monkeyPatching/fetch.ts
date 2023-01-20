@@ -54,5 +54,5 @@ function handleProgressEndpoint(
       return [key, value];
     })
   );
-  sendMessage(mappedResult, "updateProgress");
+  sendMessage(mappedResult, "makeProgress");
 }

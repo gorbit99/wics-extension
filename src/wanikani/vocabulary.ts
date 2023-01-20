@@ -1,8 +1,7 @@
 import { CustomDeck } from "../storage/customDeck";
-import { fetchSubjects, WKVocabularySubject } from "../storage/wkapi";
+import { WKVocabularySubject } from "../storage/wkapi/subject";
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, AuxiliaryReading, WKRelationship } from "./common";
-import { fromSubject } from "./fromSubject";
 import { WKItem } from "./item";
 import {
   WKExportItem,
@@ -17,6 +16,7 @@ export class WKVocabularyItem extends WKItem {
   constructor(
     id: number,
     deckId: number,
+    level: number,
     english: [string, ...string[]],
     characters: string,
     private audio: Audio[],
@@ -34,6 +34,7 @@ export class WKVocabularyItem extends WKItem {
     super(
       id,
       deckId,
+      level,
       "vocabulary",
       english,
       characters,
@@ -143,6 +144,7 @@ export class WKVocabularyItem extends WKItem {
     return new WKVocabularyItem(
       id,
       data.deckId,
+      data.level ?? 1,
       data.english,
       data.characters,
       data.audio,
@@ -258,6 +260,7 @@ export class WKVocabularyItem extends WKItem {
     return new WKVocabularyItem(
       subject.id,
       subject.id,
+      subject.level,
       subject.meanings
         .sort((a, _) => (a.primary ? -1 : 1))
         .map((meaning) => meaning.meaning) as [string, ...string[]],
@@ -301,6 +304,7 @@ export class WKVocabularyItem extends WKItem {
     return new WKVocabularyItem(
       id,
       deckId,
+      this.getSrs().getLevel(),
       this.english,
       this.characters,
       this.audio,
@@ -335,6 +339,12 @@ export class WKVocabularyItem extends WKItem {
             ?.getDeckId() ?? undefined
       )
       .filter((id) => id !== undefined) as number[];
+  }
+
+  async isUnlocked(deck: CustomDeck): Promise<boolean> {
+    return (
+      (await super.isUnlocked(deck)) && this.areRelatedPassed(this.kanji, deck)
+    );
   }
 }
 

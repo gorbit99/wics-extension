@@ -13,6 +13,7 @@ import { FieldGroupRenderer } from "../itemForm/fields";
 import { checkForMissingRelated } from "./related";
 
 export type Kanji = {
+  level: number;
   characters: string;
   english: string[];
   emphasis: "onyomi" | "kunyomi" | "nanori";
@@ -31,6 +32,7 @@ export type Kanji = {
 };
 
 const helpText = {
+  level: "The deck level you need to be to unlock the kanji.",
   kanji: "The kanji itself. This should be a single character.",
   english:
     "The meanings of the kanji. This will be what needs to be input to pass " +
@@ -69,6 +71,14 @@ const helpText = {
 };
 
 const kanjiFormConfig: ItemFormConfig<Kanji> = {
+  level: {
+    type: "number",
+    name: "Level",
+    helpText: helpText.level,
+    constraints: {
+      min: 1,
+    },
+  },
   characters: {
     type: "text",
     name: "Kanji",
@@ -325,6 +335,7 @@ export async function convertToKanji(
   return new WKKanjiItem(
     await StorageHandler.getInstance().getNewId(),
     deckId,
+    kanji.level,
     kanji.english as [string, ...string[]],
     kanji.characters,
     kanji.onyomi,

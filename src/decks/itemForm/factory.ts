@@ -1,6 +1,7 @@
 import { ComplexFieldRenderer } from "./complexField";
 import { ConstantFieldRenderer } from "./constantField";
 import { EditableMultilineFieldRenderer } from "./editableMultiline";
+import { EditableNumberFieldRenderer } from "./editableNumberField";
 import { EditableValueFieldRenderer } from "./editableValue";
 import {
   FieldGroupRenderer,
@@ -14,6 +15,7 @@ import {
 } from "./groupedListField";
 import { ListFieldConstraints, ListFieldRenderer } from "./listField";
 import { MultiLineFieldRenderer } from "./multilineField";
+import { NumberConstraints, NumberFieldRenderer } from "./numberField";
 import { SelectFieldRenderer } from "./selectField";
 import { TextFieldConstraints, TextFieldRenderer } from "./textField";
 
@@ -136,6 +138,25 @@ function generateFormField<Type>(
         type,
         type === "form" ? fieldConfig.formField : fieldConfig.dataViewField
       );
+    case "number":
+      if (type === "form") {
+        return [
+          name,
+          new NumberFieldRenderer(
+            fieldConfig.name,
+            fieldConfig.constraints as NumberConstraints,
+            fieldConfig.helpText
+          ),
+        ];
+      }
+      return [
+        name,
+        new EditableNumberFieldRenderer(
+          fieldConfig.name,
+          fieldConfig.constraints as NumberConstraints,
+          fieldConfig.helpText
+        ),
+      ];
   }
 }
 
@@ -149,6 +170,8 @@ type ItemFormFieldConfig<FieldType> =
       ? TextFieldConfig | SelectFieldConfig<FieldType> | MultiLineFieldConfig
       : FieldType extends string[]
       ? ListFieldConfig
+      : FieldType extends number
+      ? NumberFieldConfig
       : FieldType extends File
       ? FileFieldConfig
       : FieldType extends Record<string, any>[]
@@ -205,6 +228,11 @@ interface GroupedListFieldConfig<Type extends Record<string, unknown>>
   type: "groupedList";
   fields: ItemFormConfig<Type>;
   constraints?: GroupedListFieldConstraints;
+}
+
+interface NumberFieldConfig extends ItemFormField {
+  type: "number";
+  constraints?: NumberConstraints;
 }
 
 interface ChoiceFieldConfig<Type> extends ItemFormField {

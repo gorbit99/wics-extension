@@ -1,135 +1,25 @@
-import { fetchRawCollectionFromWK, WKRequest, WKResponseItem } from "../wkapi";
-import browser from "webextension-polyfill";
+import { WKResponseItem } from "../wkapi";
+import { MassCache } from "./massCache";
 
-interface SubjectsInfo {
-  itemCount: number;
-  lastUpdated: number | undefined;
-}
-
-const individualCacheSize = 500;
-
-const localCache: Map<number, WKSubject[]> = new Map();
-
-export async function fetchSubjects(ids?: number[]): Promise<WKSubject[]> {
-  if (ids && ids.length === 0) {
-    return [];
+export class SubjectHandler extends MassCache<WKSubject> {
+  protected getCachePrefix(): string {
+    return "subjects";
   }
-  const subjectInfo = (await browser.storage.local.get("subjectsInfo"))
-    .subjectsInfo as SubjectsInfo | undefined;
-
-  const lastUpdated = subjectInfo?.lastUpdated;
-
-  const minTimeDiff = 10 * 60 * 1000;
-
-  let totalCount = subjectInfo?.itemCount ?? 0;
-
-  if (!lastUpdated || Date.now() - lastUpdated >= minTimeDiff) {
-    const updateRequestPromise = fetchRawCollectionFromWK<WKSubject>(
-      {
-        endpoint: "subjects",
-        params: {},
-      },
-      lastUpdated
-    );
-    const updateRequest = await updateRequestPromise;
-
-    const added = await updateItemCaches(updateRequest?.data ?? []);
-
-    totalCount += added;
+  protected getEndpoint(): string {
+    return "subjects";
+  }
+  protected getMinCacheTime(): number {
+    return 10 * 60 * 1000;
   }
 
-  await browser.storage.local.set({
-    subjectsInfo: { lastUpdated: new Date().getTime(), itemCount: totalCount },
-  });
+  private static instance: SubjectHandler;
 
-  if (ids) {
-    return getItemsFromCaches(ids);
+  public static getInstance(): SubjectHandler {
+    if (!SubjectHandler.instance) {
+      SubjectHandler.instance = new SubjectHandler();
+    }
+    return SubjectHandler.instance;
   }
-
-  const items = await getAllCaches(totalCount);
-  return items;
-}
-
-async function updateItemCaches(updateData: WKSubject[]): Promise<number> {
-  const requiredCaches = updateData
-    .map((item) => Math.floor(item.id / individualCacheSize))
-    .filter((item, index, array) => array.indexOf(item) === index);
-
-  const updated = await Promise.all(
-    requiredCaches.map((id) => updateItemCache(id, updateData))
-  );
-
-  return updated.reduce((a, b) => a + b, 0);
-}
-
-async function updateItemCache(
-  id: number,
-  updateData: WKSubject[]
-): Promise<number> {
-  updateData = updateData.filter(
-    (item) => Math.floor(item.id / individualCacheSize) == id
-  );
-
-  const existingData =
-    ((await browser.storage.local.get(`subjects-${id}`))[`subjects-${id}`] as
-      | WKSubject[]
-      | undefined) ?? [];
-
-  const originalCount = existingData.length;
-
-  const newData = existingData
-    .filter((item) => !updateData.some((newItem) => newItem.id === item.id))
-    .concat(updateData);
-
-  await browser.storage.local.set({ [`subjects-${id}`]: newData });
-
-  return newData.length - originalCount;
-}
-
-async function getItemsFromCaches(ids: number[]): Promise<WKSubject[]> {
-  const requiredCaches = ids
-    .filter((id) => id > 0)
-    .map((item) => Math.floor(item / individualCacheSize))
-    .filter((item, index, array) => array.indexOf(item) === index);
-
-  const cacheData = await Promise.all(requiredCaches.map(getCache));
-
-  return cacheData.flat().filter((item) => ids.includes(item.id));
-}
-
-async function getAllCaches(itemCount: number): Promise<WKSubject[]> {
-  const requiredCaches = Array.from(
-    Array(Math.ceil(itemCount / individualCacheSize)),
-    (_, index) => index
-  );
-
-  const cacheData = await Promise.all(requiredCaches.map(getCache));
-
-  return cacheData.flat();
-}
-
-async function getCache(id: number): Promise<WKSubject[]> {
-  if (localCache.has(id)) {
-    return localCache.get(id) ?? [];
-  }
-
-  const cache = (await browser.storage.local.get(`subjects-${id}`))[
-    `subjects-${id}`
-  ] as WKSubject[];
-
-  localCache.set(id, cache);
-  return cache;
-}
-
-export interface WKSubjectsRequest extends WKRequest {
-  endpoint: "subjects";
-  params: {
-    ids?: number[];
-    types?: string[];
-    slugs?: string[];
-    levels?: number[];
-    hidden?: boolean;
-  };
 }
 
 export interface WKSubject extends WKResponseItem {

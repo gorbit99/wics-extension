@@ -1,9 +1,8 @@
 import { WKSrsData } from ".";
 import { CustomDeck } from "../storage/customDeck";
-import { fetchSubjects, WKKanjiSubject } from "../storage/wkapi";
+import { WKKanjiSubject } from "../storage/wkapi/subject";
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, AuxiliaryReading, WKRelationship } from "./common";
-import { fromSubject } from "./fromSubject";
 import { WKItem } from "./item";
 import {
   WKExportItem,
@@ -18,6 +17,7 @@ export class WKKanjiItem extends WKItem {
   constructor(
     id: number,
     deckId: number,
+    level: number,
     english: [string, ...string[]],
     characters: string,
     private onyomi: string[],
@@ -37,6 +37,7 @@ export class WKKanjiItem extends WKItem {
     super(
       id,
       deckId,
+      level,
       "kanji",
       english,
       characters,
@@ -129,6 +130,7 @@ export class WKKanjiItem extends WKItem {
     return new WKKanjiItem(
       id,
       data.deckId,
+      data.level ?? 1,
       data.english,
       data.characters,
       data.onyomi,
@@ -275,6 +277,7 @@ export class WKKanjiItem extends WKItem {
     return new WKKanjiItem(
       subject.id,
       subject.id,
+      subject.level,
       subject.meanings
         .sort((a, _) => (a.primary ? -1 : 1))
         .map((meaning) => meaning.meaning) as [string, ...string[]],
@@ -320,6 +323,7 @@ export class WKKanjiItem extends WKItem {
     return new WKKanjiItem(
       id,
       deckId,
+      this.getSrs().getLevel(),
       this.english,
       this.characters,
       this.onyomi,
@@ -371,6 +375,13 @@ export class WKKanjiItem extends WKItem {
             ?.getDeckId() ?? undefined
       )
       .filter((id) => id !== undefined) as number[];
+  }
+
+  async isUnlocked(deck: CustomDeck): Promise<boolean> {
+    return (
+      (await super.isUnlocked(deck)) &&
+      this.areRelatedPassed(this.radicals, deck)
+    );
   }
 }
 

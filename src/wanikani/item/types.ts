@@ -31,6 +31,7 @@ export interface WKJsonItem {
 
 export interface WKExportItem {
   deckId: number;
+  level: number;
   type: "rad" | "kan" | "voc";
   english: [string, ...string[]];
   characters: string;

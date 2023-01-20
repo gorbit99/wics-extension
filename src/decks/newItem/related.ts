@@ -1,6 +1,6 @@
 import { createAlert } from "../../components/alert";
 import { CustomDeck } from "../../storage/customDeck";
-import { fetchSubjects } from "../../storage/wkapi";
+import { SubjectHandler } from "../../storage/wkapi/subject";
 import { StorageHandler } from "../../storageHandler";
 import { WKItem } from "../../wanikani";
 
@@ -10,7 +10,7 @@ export async function checkForMissingRelated(
   type: "radical" | "kanji" | "vocabulary"
 ): Promise<string | undefined> {
   const deckItems = deck.getItems();
-  const wanikaniItems = await fetchSubjects();
+  const wanikaniItems = await SubjectHandler.getInstance().fetchItems();
 
   let missingItems = items.filter(
     (check) =>

@@ -1,4 +1,5 @@
 import { CustomDeck } from "../storage/customDeck";
+import { AssignmentHandler } from "../storage/wkapi/assignment";
 import { StorageHandler } from "../storageHandler";
 import { AuxiliaryMeaning, WKRelationship } from "./common";
 import {
@@ -16,6 +17,7 @@ export abstract class WKItem {
   constructor(
     protected id: number,
     protected deckId: number,
+    level: number,
     public type: "radical" | "kanji" | "vocabulary",
     protected english: [string, ...string[]],
     protected characters: string,
@@ -30,7 +32,7 @@ export abstract class WKItem {
     this.relationships = relationships;
     this.auxiliaryMeanings = auxiliaryMeanings;
 
-    this.srs = new WKSrsData();
+    this.srs = new WKSrsData(0, null, level);
   }
 
   abstract getReviewData(parent: CustomDeck): Promise<WKReviewItem>;
@@ -41,6 +43,7 @@ export abstract class WKItem {
   protected getBaseExportData(): WKExportItem {
     return {
       deckId: this.deckId,
+      level: this.getSrs().getLevel(),
       type: {
         radical: "rad" as const,
         kanji: "kan" as const,
@@ -53,8 +56,8 @@ export abstract class WKItem {
     };
   }
 
-  isPendingReview(): boolean {
-    return this.isReview() && this.srs.isPending();
+  isPendingReview(level: number): boolean {
+    return this.isReview(level) && this.srs.isPending();
   }
 
   getID(): number {
@@ -69,12 +72,12 @@ export abstract class WKItem {
     this.deckId = deckId;
   }
 
-  isReview(): boolean {
-    return this.isActive() && this.srs.isReview();
+  isReview(level: number | undefined = undefined): boolean {
+    return this.isActive() && this.srs.isReview(level);
   }
 
-  isLesson(): boolean {
-    return this.isActive() && this.srs.isLesson();
+  isLesson(level: number | undefined = undefined): boolean {
+    return this.isActive() && this.srs.isLesson(level);
   }
 
   review(mistakes: number) {
@@ -138,6 +141,7 @@ export abstract class WKItem {
     this.relationships = item.relationships;
     this.auxiliaryMeanings = item.auxiliaryMeanings;
     this.meaningMnemonic = item.meaningMnemonic;
+    this.getSrs().setLevel(item.getSrs().getLevel());
   }
 
   getValue(id: string): any {
@@ -158,6 +162,8 @@ export abstract class WKItem {
         return this.meaningMnemonic;
       case "srs":
         return this.srs.getStage();
+      case "level":
+        return this.srs.getLevel();
       default:
         throw new Error(`Invalid field id: ${id}`);
     }
@@ -180,6 +186,9 @@ export abstract class WKItem {
       case "meaningMnemonic":
         this.meaningMnemonic = value as string;
         break;
+      case "level":
+        this.srs.setLevel(value as number);
+        break;
       default:
         throw new Error(`Invalid field id: ${id}`);
     }
@@ -194,4 +203,26 @@ export abstract class WKItem {
   abstract removeRelated(deckId: number): void;
 
   abstract fixUpRelated(deck: CustomDeck): void;
+
+  isUnlocked(deck: CustomDeck): Promise<boolean> {
+    return Promise.resolve(deck.getLevel() >= this.srs.getLevel());
+  }
+
+  protected async areRelatedPassed(related: number[], deck: CustomDeck) {
+    const deckRelated = related.filter((id) => id < 0);
+    const wkRelated = related.filter((id) => id > 0);
+
+    const deckRelatedPassed = deckRelated.every(
+      (id) => deck.getItemByDeckId(id)?.getSrs().isPassed() ?? false
+    );
+
+    const relatedAssignments = await AssignmentHandler.getInstance().fetchItems(
+      wkRelated
+    );
+    const wkRelatedPassed = relatedAssignments.every(
+      (item) => item.passed_at !== null
+    );
+
+    return deckRelatedPassed && wkRelatedPassed;
+  }
 }
