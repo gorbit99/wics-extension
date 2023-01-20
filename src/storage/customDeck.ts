@@ -265,21 +265,21 @@ export class CustomDeck {
     }
 
     while (true) {
-      const levelItems = this.items.filter(
-        (item) => item.getSrs().getLevel() == this.currentLevel
+      const levelKanji = this.items.filter(
+        (item) =>
+          item.getSrs().getLevel() == this.currentLevel && item.type === "kanji"
       );
 
-      if (levelItems.length === 0) {
+      if (levelKanji.length === 0) {
         this.currentLevel++;
         continue;
       }
 
-      const completed = levelItems.filter((item) =>
+      const completed = levelKanji.filter((item) =>
         item.getSrs().isPassed()
       ).length;
 
-      console.log(completed, levelItems.length, completionRequirement);
-      if (completed / levelItems.length < completionRequirement) {
+      if (completed / levelKanji.length < completionRequirement) {
         break;
       }
       this.currentLevel++;
